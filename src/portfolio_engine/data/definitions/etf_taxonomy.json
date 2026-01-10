@@ -1,0 +1,298 @@
+{
+  "_metadata": {
+    "version": "1.0.0",
+    "last_updated": "2026-01-07",
+    "description": "ETF taxonomy and geographic exposure mappings",
+    "source": "Manual curation based on ETF factsheets",
+    "note": "Add new ETFs here instead of modifying taxonomy.py"
+  },
+  
+  "etf_lists": {
+    "CORE_GLOBAL_ETF": {
+      "description": "Global equity ETFs (world market cap weighted)",
+      "tickers": ["VT", "VWCE", "IWDA", "ACWI", "URTH", "SPDW", "ACWX", "CWI"]
+    },
+    "CORE_DEVELOPED_ETF": {
+      "description": "Developed markets broad ETFs",
+      "tickers": ["VEA", "EFA", "IEFA", "SCHF", "SPDW"]
+    },
+    "CORE_REGIONAL_ETF": {
+      "description": "Regional equity ETFs (US, Europe, Japan, etc.)",
+      "tickers": ["IVV", "SPY", "VOO", "VGK", "EZU", "EWU", "EWJ", "VPL", "EPP", "EWY", "EWT", "EWA", "EWC"]
+    },
+    "EMERGING_BROAD_ETF": {
+      "description": "Broad emerging markets ETFs",
+      "tickers": ["EEM", "VWO", "IEMG", "EIMI", "SCHE", "SPEM"]
+    },
+    "EMERGING_ETF": {
+      "description": "EM keywords for matching",
+      "tickers": ["EEM", "VWO", "EIMI", "IEMG", "INDA", "MCHI", "EWZ", "FXI", "GXG", "THD", "EWW"]
+    },
+    "EM_SINGLE_COUNTRY_ETF": {
+      "description": "Single country EM ETFs",
+      "tickers": ["INDA", "MCHI", "FXI", "EWZ", "EWW", "ECH", "EPU", "THD", "EIDO", "VNM", "EPHE", "EWM", "EZA", "NGE", "AFK", "GXG", "ARGT", "QAT", "UAE", "KSA"]
+    },
+    "SMALL_CAP_ETF": {
+      "description": "Small cap ETFs",
+      "tickers": ["IWM", "IJR", "VB", "SCHA", "IUSN", "WSML", "VSS", "SCJ", "EWUS", "DLS"]
+    },
+    "REIT_ETF": {
+      "description": "Real estate ETFs",
+      "tickers": ["VNQ", "VNQI", "IYR", "SCHH", "RWR", "REET", "SRVR", "XLRE"]
+    },
+    "FACTOR_ETF": {
+      "description": "Factor/Smart beta ETFs",
+      "tickers": ["MTUM", "QUAL", "VLUE", "SIZE", "USMV", "EFAV", "EEMV", "NOBL", "MOAT", "VTV", "VUG", "SCHD"]
+    },
+    "SECTOR_ETF": {
+      "description": "Sector ETFs",
+      "tickers": ["XLE", "XLF", "XLV", "XLK", "XLI", "XLP", "XLY", "XLU", "XLB", "XLRE", "XLC", "ITA", "PBW", "ICLN"]
+    },
+    "THEMATIC_PURE_ETF": {
+      "description": "Thematic/disruptive ETFs (high volatility)",
+      "tickers": ["ARKK", "ARKQ", "ARKW", "ARKG", "ARKF", "BOTZ", "ROBO", "DRIV", "PRNT", "IZRL", "MOON", "DFEN", "NUKL", "URA", "URNM", "LIT", "REMX"]
+    },
+    "BOND_ETF": {
+      "description": "Fixed income ETFs",
+      "tickers": ["BND", "AGG", "AGGH", "TLT", "IEF", "SHY", "LQD", "HYG", "JNK", "EMB", "BNDX", "IAGG", "BWX", "VCSH", "VCIT", "VCLT", "GOVT", "TIPS", "STIP", "VTIP"]
+    },
+    "GOLD_COMMODITY_ETF": {
+      "description": "Commodities and gold ETFs",
+      "tickers": ["GLD", "IAU", "SGOL", "SLV", "PDBC", "DJP", "GSG", "DBC", "COMT"]
+    },
+    "DIVIDEND_INCOME_ETF": {
+      "description": "Dividend/income focused ETFs",
+      "tickers": ["VYM", "SCHD", "DVY", "HDV", "SPHD", "SPYD", "NOBL", "VIG", "DGRO", "DGRW", "SDY", "FDL"]
+    },
+    "DEFENSIVE_ETF": {
+      "description": "Defensive/low volatility ETFs",
+      "tickers": ["USMV", "SPLV", "EFAV", "EEMV", "ACWV", "SPHD"]
+    }
+  },
+  
+  "geographic_exposure": {
+    "_note": "Geographic allocation for each ETF. Must sum to 1.0",
+    "_regions": ["USA", "Europe", "Japan", "EM", "Other_DM"],
+    
+    "VT": {"USA": 0.60, "Europe": 0.15, "Japan": 0.06, "EM": 0.12, "Other_DM": 0.07},
+    "VWCE": {"USA": 0.60, "Europe": 0.15, "Japan": 0.06, "EM": 0.12, "Other_DM": 0.07},
+    "IWDA": {"USA": 0.68, "Europe": 0.18, "Japan": 0.07, "EM": 0.0, "Other_DM": 0.07},
+    "ACWI": {"USA": 0.62, "Europe": 0.14, "Japan": 0.05, "EM": 0.12, "Other_DM": 0.07},
+    
+    "IVV": {"USA": 1.0, "Europe": 0.0, "Japan": 0.0, "EM": 0.0, "Other_DM": 0.0},
+    "SPY": {"USA": 1.0, "Europe": 0.0, "Japan": 0.0, "EM": 0.0, "Other_DM": 0.0},
+    "VOO": {"USA": 1.0, "Europe": 0.0, "Japan": 0.0, "EM": 0.0, "Other_DM": 0.0},
+    "QQQ": {"USA": 1.0, "Europe": 0.0, "Japan": 0.0, "EM": 0.0, "Other_DM": 0.0},
+    "VNQ": {"USA": 1.0, "Europe": 0.0, "Japan": 0.0, "EM": 0.0, "Other_DM": 0.0},
+    "IBB": {"USA": 0.90, "Europe": 0.05, "Japan": 0.0, "EM": 0.0, "Other_DM": 0.05},
+    
+    "IWM": {"USA": 1.0, "Europe": 0.0, "Japan": 0.0, "EM": 0.0, "Other_DM": 0.0},
+    "IJR": {"USA": 1.0, "Europe": 0.0, "Japan": 0.0, "EM": 0.0, "Other_DM": 0.0},
+    "VB": {"USA": 1.0, "Europe": 0.0, "Japan": 0.0, "EM": 0.0, "Other_DM": 0.0},
+    
+    "VGK": {"USA": 0.0, "Europe": 1.0, "Japan": 0.0, "EM": 0.0, "Other_DM": 0.0},
+    "EXSA": {"USA": 0.0, "Europe": 1.0, "Japan": 0.0, "EM": 0.0, "Other_DM": 0.0},
+    "EZU": {"USA": 0.0, "Europe": 1.0, "Japan": 0.0, "EM": 0.0, "Other_DM": 0.0},
+    "IEUR": {"USA": 0.0, "Europe": 1.0, "Japan": 0.0, "EM": 0.0, "Other_DM": 0.0},
+    
+    "EWU": {"USA": 0.0, "Europe": 1.0, "Japan": 0.0, "EM": 0.0, "Other_DM": 0.0},
+    "EWUS": {"USA": 0.0, "Europe": 1.0, "Japan": 0.0, "EM": 0.0, "Other_DM": 0.0},
+    "EWG": {"USA": 0.0, "Europe": 1.0, "Japan": 0.0, "EM": 0.0, "Other_DM": 0.0},
+    "EWQ": {"USA": 0.0, "Europe": 1.0, "Japan": 0.0, "EM": 0.0, "Other_DM": 0.0},
+    "EWL": {"USA": 0.0, "Europe": 1.0, "Japan": 0.0, "EM": 0.0, "Other_DM": 0.0},
+    "EWI": {"USA": 0.0, "Europe": 1.0, "Japan": 0.0, "EM": 0.0, "Other_DM": 0.0},
+    "EWP": {"USA": 0.0, "Europe": 1.0, "Japan": 0.0, "EM": 0.0, "Other_DM": 0.0},
+    "EWN": {"USA": 0.0, "Europe": 1.0, "Japan": 0.0, "EM": 0.0, "Other_DM": 0.0},
+    "EWK": {"USA": 0.0, "Europe": 1.0, "Japan": 0.0, "EM": 0.0, "Other_DM": 0.0},
+    "EWD": {"USA": 0.0, "Europe": 1.0, "Japan": 0.0, "EM": 0.0, "Other_DM": 0.0},
+    "ENOR": {"USA": 0.0, "Europe": 1.0, "Japan": 0.0, "EM": 0.0, "Other_DM": 0.0},
+    "EDEN": {"USA": 0.0, "Europe": 1.0, "Japan": 0.0, "EM": 0.0, "Other_DM": 0.0},
+    "EFNL": {"USA": 0.0, "Europe": 1.0, "Japan": 0.0, "EM": 0.0, "Other_DM": 0.0},
+    "EIRL": {"USA": 0.0, "Europe": 1.0, "Japan": 0.0, "EM": 0.0, "Other_DM": 0.0},
+    "EWO": {"USA": 0.0, "Europe": 1.0, "Japan": 0.0, "EM": 0.0, "Other_DM": 0.0},
+    "EPOL": {"USA": 0.0, "Europe": 1.0, "Japan": 0.0, "EM": 0.0, "Other_DM": 0.0},
+    "GREK": {"USA": 0.0, "Europe": 1.0, "Japan": 0.0, "EM": 0.0, "Other_DM": 0.0},
+    "TUR": {"USA": 0.0, "Europe": 1.0, "Japan": 0.0, "EM": 0.0, "Other_DM": 0.0},
+    
+    "EWJ": {"USA": 0.0, "Europe": 0.0, "Japan": 1.0, "EM": 0.0, "Other_DM": 0.0},
+    "SCJ": {"USA": 0.0, "Europe": 0.0, "Japan": 1.0, "EM": 0.0, "Other_DM": 0.0},
+    "DXJ": {"USA": 0.0, "Europe": 0.0, "Japan": 1.0, "EM": 0.0, "Other_DM": 0.0},
+    "VPL": {"USA": 0.0, "Europe": 0.0, "Japan": 0.65, "EM": 0.0, "Other_DM": 0.35},
+    "EPP": {"USA": 0.0, "Europe": 0.0, "Japan": 0.60, "EM": 0.0, "Other_DM": 0.40},
+    
+    "EWT": {"USA": 0.0, "Europe": 0.0, "Japan": 0.0, "EM": 1.0, "Other_DM": 0.0},
+    "EWY": {"USA": 0.0, "Europe": 0.0, "Japan": 0.0, "EM": 0.0, "Other_DM": 1.0},
+    "EWA": {"USA": 0.0, "Europe": 0.0, "Japan": 0.0, "EM": 0.0, "Other_DM": 1.0},
+    "EWC": {"USA": 0.0, "Europe": 0.0, "Japan": 0.0, "EM": 0.0, "Other_DM": 1.0},
+    "EWS": {"USA": 0.0, "Europe": 0.0, "Japan": 0.0, "EM": 0.0, "Other_DM": 1.0},
+    "EWH": {"USA": 0.0, "Europe": 0.0, "Japan": 0.0, "EM": 0.0, "Other_DM": 1.0},
+    "ENZL": {"USA": 0.0, "Europe": 0.0, "Japan": 0.0, "EM": 0.0, "Other_DM": 1.0},
+    "EIS": {"USA": 0.0, "Europe": 0.0, "Japan": 0.0, "EM": 0.0, "Other_DM": 1.0},
+    
+    "EEM": {"USA": 0.0, "Europe": 0.0, "Japan": 0.0, "EM": 1.0, "Other_DM": 0.0},
+    "VWO": {"USA": 0.0, "Europe": 0.0, "Japan": 0.0, "EM": 1.0, "Other_DM": 0.0},
+    "IEMG": {"USA": 0.0, "Europe": 0.0, "Japan": 0.0, "EM": 1.0, "Other_DM": 0.0},
+    "EIMI": {"USA": 0.0, "Europe": 0.0, "Japan": 0.0, "EM": 1.0, "Other_DM": 0.0},
+    
+    "INDA": {"USA": 0.0, "Europe": 0.0, "Japan": 0.0, "EM": 1.0, "Other_DM": 0.0},
+    "MCHI": {"USA": 0.0, "Europe": 0.0, "Japan": 0.0, "EM": 1.0, "Other_DM": 0.0},
+    "FXI": {"USA": 0.0, "Europe": 0.0, "Japan": 0.0, "EM": 1.0, "Other_DM": 0.0},
+    "EWZ": {"USA": 0.0, "Europe": 0.0, "Japan": 0.0, "EM": 1.0, "Other_DM": 0.0},
+    "EWW": {"USA": 0.0, "Europe": 0.0, "Japan": 0.0, "EM": 1.0, "Other_DM": 0.0},
+    "ECH": {"USA": 0.0, "Europe": 0.0, "Japan": 0.0, "EM": 1.0, "Other_DM": 0.0},
+    "EPU": {"USA": 0.0, "Europe": 0.0, "Japan": 0.0, "EM": 1.0, "Other_DM": 0.0},
+    "ARGT": {"USA": 0.0, "Europe": 0.0, "Japan": 0.0, "EM": 1.0, "Other_DM": 0.0},
+    "THD": {"USA": 0.0, "Europe": 0.0, "Japan": 0.0, "EM": 1.0, "Other_DM": 0.0},
+    "EIDO": {"USA": 0.0, "Europe": 0.0, "Japan": 0.0, "EM": 1.0, "Other_DM": 0.0},
+    "EPHE": {"USA": 0.0, "Europe": 0.0, "Japan": 0.0, "EM": 1.0, "Other_DM": 0.0},
+    "VNM": {"USA": 0.0, "Europe": 0.0, "Japan": 0.0, "EM": 1.0, "Other_DM": 0.0},
+    "EWM": {"USA": 0.0, "Europe": 0.0, "Japan": 0.0, "EM": 1.0, "Other_DM": 0.0},
+    "EZA": {"USA": 0.0, "Europe": 0.0, "Japan": 0.0, "EM": 1.0, "Other_DM": 0.0},
+    
+    "IUSN": {"USA": 0.60, "Europe": 0.20, "Japan": 0.10, "EM": 0.0, "Other_DM": 0.10},
+    "VSS": {"USA": 0.0, "Europe": 0.35, "Japan": 0.20, "EM": 0.25, "Other_DM": 0.20},
+    
+    "ARKK": {"USA": 0.85, "Europe": 0.05, "Japan": 0.0, "EM": 0.05, "Other_DM": 0.05},
+    "ARKQ": {"USA": 0.80, "Europe": 0.05, "Japan": 0.05, "EM": 0.05, "Other_DM": 0.05},
+    "URA": {"USA": 0.40, "Europe": 0.10, "Japan": 0.05, "EM": 0.0, "Other_DM": 0.45},
+    "SRVR": {"USA": 0.85, "Europe": 0.05, "Japan": 0.05, "EM": 0.0, "Other_DM": 0.05},
+    "SOXX": {"USA": 0.85, "Europe": 0.05, "Japan": 0.0, "EM": 0.05, "Other_DM": 0.05},
+    
+    "XLE": {"USA": 1.0, "Europe": 0.0, "Japan": 0.0, "EM": 0.0, "Other_DM": 0.0},
+    "XLF": {"USA": 1.0, "Europe": 0.0, "Japan": 0.0, "EM": 0.0, "Other_DM": 0.0},
+    "XLV": {"USA": 1.0, "Europe": 0.0, "Japan": 0.0, "EM": 0.0, "Other_DM": 0.0},
+    "ITA": {"USA": 1.0, "Europe": 0.0, "Japan": 0.0, "EM": 0.0, "Other_DM": 0.0},
+    
+    "_comment_ucits": "UCITS ETF variants (European listed)",
+    "VWCE.DE": {"USA": 0.60, "Europe": 0.15, "Japan": 0.06, "EM": 0.12, "Other_DM": 0.07},
+    "IUSV.DE": {"USA": 1.0, "Europe": 0.0, "Japan": 0.0, "EM": 0.0, "Other_DM": 0.0},
+    "XDWH.DE": {"USA": 0.70, "Europe": 0.12, "Japan": 0.08, "EM": 0.0, "Other_DM": 0.10},
+    "EXI1.DE": {"USA": 0.0, "Europe": 1.0, "Japan": 0.0, "EM": 0.0, "Other_DM": 0.0},
+    "SMH": {"USA": 0.80, "Europe": 0.05, "Japan": 0.0, "EM": 0.10, "Other_DM": 0.05},
+    "SJPA.L": {"USA": 0.0, "Europe": 0.0, "Japan": 1.0, "EM": 0.0, "Other_DM": 0.0},
+    "NDIA.L": {"USA": 0.0, "Europe": 0.0, "Japan": 0.0, "EM": 1.0, "Other_DM": 0.0},
+    "EUNA.DE": {"USA": 0.40, "Europe": 0.30, "Japan": 0.10, "EM": 0.10, "Other_DM": 0.10},
+    "SGLD.L": {"USA": 0.0, "Europe": 0.0, "Japan": 0.0, "EM": 0.0, "Other_DM": 0.0}
+  },
+  
+  "default_geo": {
+    "_warning": "Used when ETF not in geographic_exposure. Shows warning in output.",
+    "USA": 0.50,
+    "Europe": 0.20,
+    "Japan": 0.10,
+    "EM": 0.10,
+    "Other_DM": 0.10
+  },
+  
+  "asset_functions": {
+    "_description": "Economic function of each ETF type",
+    "CORE_GLOBAL_ETF": "Core Growth",
+    "CORE_DEVELOPED_ETF": "Core Growth",
+    "CORE_REGIONAL_ETF": "Core Growth",
+    "EMERGING_BROAD_ETF": "EM Exposure",
+    "EM_SINGLE_COUNTRY_ETF": "EM Exposure",
+    "SMALL_CAP_ETF": "Factor Tilt",
+    "REIT_ETF": "Alternative",
+    "FACTOR_ETF": "Factor Tilt",
+    "SECTOR_ETF": "Sector Tilt",
+    "THEMATIC_PURE_ETF": "Thematic",
+    "BOND_ETF": "Fixed Income",
+    "GOLD_COMMODITY_ETF": "Commodity",
+    "DIVIDEND_INCOME_ETF": "Income",
+    "DEFENSIVE_ETF": "Defensive"
+  },
+  
+  "thresholds": {
+    "_documentation": "Thresholds used for portfolio classification and issues detection",
+    "_source": "Empirical analysis of S&P500 1990-2023, Vanguard research",
+    
+    "sharpe": {
+      "excellent": 1.0,
+      "good": 0.7,
+      "acceptable": 0.5,
+      "poor": 0.3,
+      "source": "Historical S&P500 Sharpe ~0.4-0.5 long-term"
+    },
+    "sortino": {
+      "excellent": 1.5,
+      "good": 1.0,
+      "acceptable": 0.6,
+      "poor": 0.3,
+      "source": "Sortino typically 1.3-1.5x Sharpe for equity"
+    },
+    "max_drawdown": {
+      "equity_normal": -0.30,
+      "equity_crisis": -0.55,
+      "balanced_normal": -0.18,
+      "balanced_crisis": -0.35,
+      "source": "GFC S&P500 = -57%, 60/40 = -35%"
+    },
+    "concentration": {
+      "max_single_position": 0.25,
+      "max_top3": 0.60,
+      "max_satellite_single": 0.15,
+      "max_satellite_total": 0.30,
+      "source": "Institutional guidelines for diversification"
+    },
+    "correlation": {
+      "high_threshold": 0.85,
+      "crisis_spike_warning": 0.90,
+      "source": "Correlation breakdown literature"
+    }
+  },
+  
+  "classification_keywords": {
+    "_note": "Keywords used by gate_system.py classify_asset() function. Externalizing Fix C5.",
+    "_updated": "2025-01-XX",
+    
+    "CORE_GLOBAL": {
+      "description": "Global/World total market ETFs",
+      "keywords": ["VT", "VWCE", "IWDA", "ACWI", "VTI", "ITOT", "SPTM"]
+    },
+    "CORE_REGIONAL": {
+      "description": "Regional broad-market ETFs (USA, EU, EM, JP, UK, Pacific)",
+      "keywords": [
+        "VOO", "SPY", "IVV", "CSPX", "SXR8", "CSP1", "VUAA",
+        "VTI", "ITOT", "SCHB",
+        "VGK", "VEUR", "IEUR", "IMEU", "EZU", "EXSA", "MEUD",
+        "VWO", "IEMG", "EEM", "EMIM", "EIMI", "IS3N", "AEEM",
+        "EWJ", "SJPA", "IJPN", "ISJP", "FLJP",
+        "EWU", "ISF", "VUKE", "CUKS", "CUKX",
+        "VPL", "EPP", "IPAC",
+        "VEA", "IEFA", "EFA", "VXUS", "IXUS"
+      ]
+    },
+    "SATELLITE_FACTOR": {
+      "description": "Factor/Smart beta ETFs including small cap",
+      "keywords": [
+        "MTUM", "QUAL", "VLUE", "SIZE", "USMV", "AVUV", "AVDV",
+        "VBR", "VTV", "VFMF", "SLYV", "VIOV",
+        "USSC", "WSML", "IWM", "VB", "IJR", "IUSN", "ZPRX"
+      ]
+    },
+    "SATELLITE_SECTOR": {
+      "description": "Sector and thematic ETFs",
+      "keywords": [
+        "XLK", "XLF", "XLE", "XLV", "XLI", "XLU", "XLP", "XLY", "XLC", "XLRE",
+        "IBB", "VNQ", "VNQI", "VDE", "VGT", "VHT", "VIS",
+        "SEMI", "SMH", "SOXX", "ARKK", "ARKG",
+        "INFR", "DFNS", "ITA", "PPA"
+      ]
+    },
+    "SATELLITE_REGION": {
+      "description": "Single-country EM ETFs (concentration risk)",
+      "keywords": [
+        "INDA", "MCHI", "EWZ", "EWT", "EWY", "EWG",
+        "FXI", "KWEB", "ASHR", "ITWN"
+      ]
+    },
+    "DEFENSIVE": {
+      "description": "Fixed income, gold, and cash-like instruments",
+      "keywords": [
+        "BND", "AGG", "AGGH", "BNDX", "TLT", "IEF", "SHY", "GOVT",
+        "SGLN", "GLD", "IAU", "GLDM",
+        "SHV", "BIL", "VMBS"
+      ]
+    }
+  }
+}

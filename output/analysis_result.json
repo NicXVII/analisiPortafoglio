@@ -1,0 +1,59 @@
+{
+  "verdict": {
+    "type": "STRUCTURALLY_COHERENT_INTENT_MATCH",
+    "message": "\u2705 STRUCTURALLY COHERENT - Struttura e Intent allineati",
+    "confidence": 85
+  },
+  "portfolio": {
+    "risk_intent": "GROWTH_DIVERSIFIED",
+    "structure_type": "EQUITY_MULTI_BLOCK",
+    "composition": {
+      "CSPX.L": 0.22,
+      "USSC.L": 0.08,
+      "IMEU.L": 0.12,
+      "CUKS.L": 0.04,
+      "CUKX.L": 0.02,
+      "SJPA.L": 0.06,
+      "ISJP.L": 0.03,
+      "EMIM.L": 0.12,
+      "ITWN.L": 0.05,
+      "WSML.L": 0.1,
+      "SEMI.L": 0.04,
+      "DFNS.L": 0.08,
+      "INFR.L": 0.04
+    }
+  },
+  "metrics": {
+    "cagr": 0.13544366376593664,
+    "sharpe": 0.6750902222750084,
+    "sortino": 1.1246607991467965,
+    "max_drawdown": -0.31464479813996227,
+    "volatility": 0.1836297720246531,
+    "var_95": 0.0,
+    "cvar_95": 0.0,
+    "cagr_ci_lower": 0.0624510113729596,
+    "cagr_ci_upper": 0.2201503504643665,
+    "sharpe_ci_lower": 0.19075600634300394,
+    "sharpe_ci_upper": 1.1064569981868788,
+    "profit_factor": 1.17571439088123,
+    "win_rate_monthly": 0.6341463414634146
+  },
+  "quality": {
+    "is_actionable": true,
+    "issues": [],
+    "score": 100
+  },
+  "recommendations": {
+    "prescriptive_actions": [],
+    "allowed_actions": [
+      "Portfolio restructuring",
+      "Asset rebalancing",
+      "Risk adjustment"
+    ],
+    "prohibited_actions": []
+  },
+  "metadata": {
+    "timestamp": "2026-01-10T15:58:19.792272",
+    "portfolio_id": null
+  }
+}

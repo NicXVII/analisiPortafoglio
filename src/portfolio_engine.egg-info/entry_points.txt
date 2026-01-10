@@ -1,0 +1,2 @@
+[console_scripts]
+analyze-portfolio = portfolio_engine.core.main_legacy:main

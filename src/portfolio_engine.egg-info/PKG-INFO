@@ -1,0 +1,36 @@
+Metadata-Version: 2.4
+Name: portfolio-engine
+Version: 2.1.0
+Summary: Professional-grade portfolio analysis toolkit with institutional-quality metrics
+Author: Portfolio Analysis Team
+License: MIT
+Project-URL: Homepage, https://github.com/portfolio-analysis/portfolio-engine
+Project-URL: Documentation, https://github.com/portfolio-analysis/portfolio-engine#readme
+Project-URL: Repository, https://github.com/portfolio-analysis/portfolio-engine
+Keywords: portfolio,finance,investment,analysis,sharpe,metrics,risk,etf
+Classifier: Development Status :: 4 - Beta
+Classifier: Intended Audience :: Financial and Insurance Industry
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
+Classifier: Programming Language :: Python :: 3.13
+Classifier: Topic :: Office/Business :: Financial :: Investment
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+Requires-Dist: numpy>=1.24.0
+Requires-Dist: pandas>=2.0.0
+Requires-Dist: scipy>=1.10.0
+Requires-Dist: yfinance>=0.2.0
+Requires-Dist: matplotlib>=3.7.0
+Requires-Dist: seaborn>=0.12.0
+Requires-Dist: python-dateutil>=2.8.0
+Requires-Dist: openpyxl>=3.1.0
+Requires-Dist: reportlab>=4.0.0
+Provides-Extra: dev
+Requires-Dist: pytest>=7.0.0; extra == "dev"
+Requires-Dist: pytest-cov>=4.0.0; extra == "dev"
+Requires-Dist: black>=23.0.0; extra == "dev"
+Requires-Dist: isort>=5.12.0; extra == "dev"
+Requires-Dist: mypy>=1.0.0; extra == "dev"

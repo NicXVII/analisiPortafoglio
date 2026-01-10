@@ -112,3 +112,179 @@ PORTFOLIO = {
     # AI INFRASTRUCTURE / DATA CENTERS
     "SRVR": 0.10,       # Data centers + digital infrastructure
 }
+
+
+PORTFOLIO = {
+    # CORE GLOBALE (growth engine)
+    "VT":   0.35,   # Vanguard Total World Stock ETF (dal 2008, proxy globale robusto)
+    # se vuole più storico: sostituibile con mix IVV+VEU
+
+    # USA – GROWTH LEADER
+    "IVV":  0.20,   # S&P 500 (storico lunghissimo, crescita strutturale)
+
+    # EUROPA
+    "VGK":  0.10,   # MSCI Europe (storico >20 anni)
+
+    # GIAPPONE
+    "EWJ":  0.08,   # MSCI Japan (storico >25 anni)
+
+    # EMERGING MARKETS
+    "EEM":  0.10,   # MSCI Emerging Markets (dal 2003)
+
+    # ASIA PACIFICO ex-Japan
+    "VPL":  0.07,   # Asia-Pacifico sviluppato (Australia, HK, Singapore)
+
+    # SMALL CAPS (growth + size premium)
+    "IWM":  0.10    # Russell 2000 (dal 2000)
+}
+
+PORTFOLIO = {
+    # USA
+    "IVV": 0.50,         # S&P 500 – core USA (storico >20 anni)
+
+    # SMALL CAPS GLOBALI (proxy World Small Cap)
+    "IWM": 0.15,         # Russell 2000 – small caps (storico >20 anni)
+
+    # EUROPA
+    "VGK": 0.15,         # Europe ETF (storico >20 anni)
+
+    # REGNO UNITO (FTSE 100)
+    "EWU": 0.10,         # MSCI United Kingdom (proxy UK large-cap, storico >20 anni)
+
+    # TAIWAN
+    "EWT": 0.10          # MSCI Taiwan (storico >20 anni)
+}
+
+PORTFOLIO = {
+    # 🇺🇸 STATI UNITI
+    "IVV": 0.18,        # S&P 500 – USA Large Cap
+    "IJR": 0.07,        # USA Small Cap (S&P SmallCap 600)
+
+    # 🇯🇵 GIAPPONE
+    "EWJ": 0.10,        # Japan Large Cap
+    "SCJ": 0.05,        # Japan Small Cap
+
+    # 🇬🇧 REGNO UNITO
+    "EWU": 0.07,        # UK Large Cap (FTSE 100 heavy)
+    "EWUS": 0.04,       # UK Small Cap
+
+    # 🇩🇪 GERMANIA
+    "EWG": 0.08,        # Germany Large Cap
+
+    # 🇫🇷 FRANCIA
+    "EWQ": 0.08,        # France Large Cap
+
+    # 🇨🇭 SVIZZERA
+    "EWL": 0.08,        # Switzerland Large Cap
+
+    # 🇮🇹 ITALIA
+    "EWI": 0.05,        # Italy Large Cap
+
+    # 🇨🇳 CINA
+    "MCHI": 0.08,       # China Large Cap
+
+    # 🇮🇳 INDIA
+    "INDA": 0.07,       # India Large Cap
+
+
+    # 🇹🇼 TAIWAN
+    "EWT": 0.05         # Taiwan Large Cap
+}
+
+PORTFOLIO = {
+    # 🌍 CORE GLOBALE (efficienza / base)
+    "VWCE.DE": 0.35,    # Vanguard FTSE All-World UCITS – core globale cap-weight
+
+    # 🇺🇸 FACTOR TILT USA (value + size)
+    "IUSV.DE": 0.10,    # iShares MSCI USA Value UCITS ETF
+    # Nota: UCITS small-cap value puro non esiste → value USA è il proxy più corretto
+
+    # 🏥 TILT DIFENSIVI / STRUTTURALI
+    "IUHC.DE": 0.08,    # iShares MSCI World Health Care UCITS ETF
+    "EXI1.DE": 0.07,    # iShares STOXX Europe 600 Industrials UCITS ETF
+    "SOXX.L": 0.05,    # iShares Semiconductor UCITS ETF
+
+    # 🌍 GEOGRAFIA EX-USA MIRATA
+    "VGK.DE": 0.10,     # Vanguard FTSE Developed Europe UCITS ETF
+    "IJPA.DE": 0.05,    # iShares MSCI Japan UCITS ETF
+    "IIND.AS": 0.05,    # iShares MSCI India UCITS ETF
+
+    # 🛡️ STABILIZZATORI (decorrelazione reale)
+    "AGGH.DE": 0.10,    # iShares Core Global Aggregate Bond UCITS ETF (EUR hedged)
+    "SGLD.DE": 0.05     # Invesco Physical Gold ETC (oro fisico)
+}
+
+PORTFOLIO = {
+    # 🇺🇸 USA
+    "CSPX.L": 0.22,   # USA Large Cap (S&P 500)
+    "USSC.L": 0.08,   # USA Small Cap
+
+    # 🌍 EUROPA
+    "IMEU.L": 0.12,   # Europe Developed
+
+    # 🌏 EMERGING MARKETS
+    "EMIM.L": 0.12,   # Emerging Markets IMI
+
+    # 🇯🇵 GIAPPONE
+    "SJPA.L": 0.06,   # Japan Large Cap
+    "SCJ.L":  0.03,   # Japan Small Cap
+
+    # 🇬🇧 REGNO UNITO
+    "CUKS.L": 0.04,   # UK Large Cap
+    "UKSC.L": 0.02,   # UK Small Cap
+
+    # 🌍 SMALL CAPS GLOBALI
+    "IUSN.L": 0.10,   # World Small Cap
+
+    # 🇹🇼 TAIWAN
+    "ITWN.L": 0.05,   # Taiwan
+
+    # 🛡️ DIFESA
+    "DFNS.L": 0.08,   # Defense & Aerospace
+
+    # 🤖 AI – INFRASTRUTTURA
+    "SEMI.L": 0.04,   # Semiconductors
+    "INFR.L": 0.04    # Global Infrastructure
+}
+portfolio = {
+    # =========================
+    # USA – LARGE CAP GROWTH
+    # =========================
+    "CSPX.L": 0.22,   # S&P 500 (growth core, beta driver)
+    
+    # =========================
+    # USA – SMALL CAP
+    # =========================
+    "USSC.L": 0.08,   # USA Small Cap (beta + convexity)
+    
+    # =========================
+    # EUROPA
+    # =========================
+    "IMEU.L": 0.12,   # Europa large/mid cap
+    "CUKS.L": 0.04,   # UK Small Cap
+    "CUKX.L": 0.02,   # UK Large Cap
+    
+    # =========================
+    # GIAPPONE
+    # =========================
+    "SJPA.L": 0.06,   # Japan Large Cap
+    "ISJP.L": 0.03,   # Japan Small Cap
+    
+    # =========================
+    # EMERGING MARKETS
+    # =========================
+    "EMIM.L": 0.12,   # EM Broad (growth + beta)
+    "ITWN.L": 0.05,   # Taiwan (semiconductors, convexity)
+    
+    # =========================
+    # GLOBAL SMALL CAP
+    # =========================
+    "WSML.L": 0.10,   # Global Small Cap (size premium)
+    
+    # =========================
+    # TEMATICI – GROWTH / AI / DEFENCE
+    # =========================
+    "SEMI.L": 0.04,   # Semiconductors
+    "DFNS.L": 0.08,   # Defence (geopolitical growth)
+    "INFR.L": 0.04    # Infrastructure / AI backbone
+}

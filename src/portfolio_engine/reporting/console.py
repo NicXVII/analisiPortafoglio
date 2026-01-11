@@ -288,16 +288,15 @@ def print_summary(
     # NO Executive Summary in professional mode (redundant with detailed sections)
     # Professionals want data, not interpretation
     
-    # === DICHIARAZIONE METODOLOGICA ===
-    print("\n📋 METODOLOGIA E ASSUNZIONI")
+    # === METHODOLOGY & ASSUMPTIONS (consolidated disclaimer) ===
+    print("\n⚠️  METODOLOGIA E ASSUNZIONI")
     print("-" * 50)
-    print("   • VaR/CVaR: STORICO (non parametrico, no normalità assunta)")
-    print("   • Sharpe/Sortino: su osservazioni storiche, NOT predittivo")
-    print("   • Range plausibile*: variabilità campionaria (bootstrap), non predizione")
-    print("   • Monte Carlo: scenari IPOTETICI what-if, non previsioni")
-    print("   • Correlazioni: osservate (possono cambiare in crisi)")
-    print("   ⚠️  I returns finanziari hanno fat tails (non normali).")
-    print("   ⚠️  Le metriche descrivono il passato, non predicono il futuro.")
+    print("   • Metriche STORICHE: descrivono il passato, non predicono futuro")
+    print("   • Returns finanziari: fat tails, volatility clustering")
+    print("   • VaR/CVaR: storico (non parametrico), scaling annuale indicativo")
+    print("   • Range plausibile*: variabilità campionaria (bootstrap)")
+    print("   • Correlazioni: osservate, possono convergere in crisi")
+    print("   • Monte Carlo: scenari ipotetici, non previsioni")
     
     # === PERFORMANCE ===
     print("\n📈 PERFORMANCE")
@@ -348,23 +347,14 @@ def print_summary(
     print(f"  Avg Drawdown:           {metrics['avg_drawdown']:>12.2%}")
     print(f"  Current Drawdown:       {metrics['current_drawdown']:>12.2%}")
     
-    # === VAR/CVAR ===
-    # Fix C3: Improved documentation on sqrt-T scaling limitations
+    # === VAR/CVAR (simplified, see methodology for assumptions) ===
     print("\n⚠️  TAIL RISK (VaR storico, 95% confidence)")
     print("-" * 50)
     print(f"  VaR (daily):            {metrics['var_95_daily']:>12.2%}")
     print(f"  CVaR (daily):           {metrics['cvar_95_daily']:>12.2%}")
-    print(f"  ──────────────────────────────────────────────────")
-    print(f"  ⚠️ SCALING ANNUALE (sqrt-T) - LIMITAZIONI:")
-    print(f"  VaR scaled ~1Y:         {metrics['var_95_annual']:>12.2%}  [INDICATIVO]")
-    print(f"  CVaR scaled ~1Y:        {metrics['cvar_95_annual']:>12.2%}  [INDICATIVO]")
-    print(f"  ┌─────────────────────────────────────────────────┐")
-    print(f"  │ Lo scaling sqrt(T) assume returns i.i.d.       │")
-    print(f"  │ I returns reali hanno fat tails (kurtosis>3)   │")
-    print(f"  │ e volatility clustering. Questo scaling può    │")
-    print(f"  │ SOTTOSTIMARE il rischio annuale del 20-40%.    │")
-    print(f"  │ Usare VaR daily per decisioni di rischio.      │")
-    print(f"  └─────────────────────────────────────────────────┘")
+    print(f"  VaR (annual, indicative): {metrics['var_95_annual']:>10.2%}")
+    print(f"  CVaR (annual, indicative): {metrics['cvar_95_annual']:>9.2%}")
+    print(f"  ℹ️  Scaling annuale: sqrt(T), può sottostimare rischio ~20-40%")
     
     # === MONTHLY ===
     print("\n📅 MONTHLY STATISTICS")
@@ -452,7 +442,6 @@ def print_summary(
         sim_note = " (simulato)" if summary.get('simulated_crisis') else ""
         print(f"   Giorni normali: {summary.get('normal_days', 'N/A')}")
         print(f"   Giorni crisi: {summary.get('crisis_days', 'N/A')}{sim_note}")
-        print(f"   ⚠️ In crisi le correlazioni convergono: CCR% può cambiare drasticamente!")
     
     # === ASSET METRICS ===
     print("\n" + "=" * 70)
@@ -507,26 +496,8 @@ def print_summary(
         print("=" * 70)
         print(corr.round(2).to_string())
     
-    # === CORRELAZIONI CONDIZIONALI (normale vs crisi) ===
-    if conditional_corr:
-        print("\n" + "-" * 50)
-        print("📊 CORRELAZIONI CONDIZIONATE (normale vs crisi)")
-        print("-" * 50)
-        
-        avg_normal = conditional_corr.get('avg_corr_normal', 0)
-        avg_crisis = conditional_corr.get('avg_corr_crisis', 0)
-        delta = conditional_corr.get('delta_avg', 0)
-        severity = conditional_corr.get('severity', 'UNKNOWN')
-        summary = conditional_corr.get('summary', {})
-        
-        print(f"   Correlazione media NORMALE:  {avg_normal:>8.2f} ({summary.get('normal_days', 'N/A')} giorni)")
-        print(f"   Correlazione media CRISI:    {avg_crisis:>8.2f} ({summary.get('crisis_days', 'N/A')} giorni)")
-        print(f"   Delta (crisi - normale):     {delta:>+8.2f}")
-        
-        if conditional_corr.get('crisis_simulated'):
-            print(f"   ⚠️ Dati crisi insufficienti → stima conservativa")
-        
-        print(f"\n   {conditional_corr.get('interpretation', '')}")
+    # === CORRELATION SUMMARY (removed - already shown in CCR Condizionale) ===
+    # Correlation behavior under stress is captured in CCR% normale vs crisi section above
     
     # === MONTE CARLO STRESS TEST (Simplified for Production v3.0) ===
     if stress_test:
@@ -567,11 +538,9 @@ def print_summary(
         
         print("\n💡 TAKEAWAY:")
         if abs(delta) > 0.10:
-            print(f"   In scenari di stress, le perdite possono peggiorare di {abs(delta):.0%}.")
-            print(f"   Worst case stress: {stress_var:.0%} vs normale {base_var:.0%}.")
+            print(f"   Stress peggior caso: {stress_var:.0%} vs normale {base_var:.0%} (delta {abs(delta):.0%})")
         else:
-            print(f"   Portfolio resiliente: differenza stress vs normale contenuta (<10%).")
-        print("   ⚠️ Scenari ipotetici, non previsioni. Usare per pianificazione rischio.")
+            print(f"   Portfolio resiliente: stress vs normale <10% differenza")
     
     # === BENCHMARK COMPARISON ===
     if benchmark_comparison and benchmark_comparison.get('benchmarks'):
@@ -1079,13 +1048,7 @@ def print_portfolio_critique(issues: list, regime_info: Dict[str, Any]) -> None:
                 print("📋 VERDETTO: ✅ APPROVATO")
                 print(f"   Portafoglio coerente con tipo {portfolio_type}.")
     
-    # FIX #6: Overfitting disclaimer obbligatorio
-    print()
-    print("⚠️  DISCLAIMER (Overfitting Risk):")
-    print("   • Le soglie usate sono calibrate su dati storici (in-sample)")
-    print("   • No walk-forward validation - performance future può essere peggiore")
-    print("   • Questo è backtest, NON previsione - past performance ≠ future results")
-    
+    # Overfitting note (moved to methodology section at top)
     print("=" * 70)
 
 
@@ -1230,15 +1193,14 @@ def print_senior_architect_analysis(
     )
     
     if show_stress_warning:
-        print("\n   ⚠️ CORRELATION STRESS WARNING:")
-        print(f"      Correlazione media = {avg_corr:.2f}")
-        print(f"      In crisi, correlazioni →1.0, la diversificazione NON protegge.")
-        print(f"      Considera asset realmente decorrelati: bonds, gold, vol strategies.")
+        print("\n   ⚠️ CORRELATION RISK:")
+        print(f"      Avg correlation = {avg_corr:.2f} - in crisi → 1.0")
+        print(f"      Considera asset decorrelati: bonds, gold, vol strategies")
     elif avg_corr > 0.75 and cond_corr_severity == 'LOW':
         # Alta correlazione ma STABILE in stress - informativo, non warning
         print("\n   ℹ️ CORRELAZIONE STRUTTURALE:")
-        print(f"      Correlazione media alta ({avg_corr:.2f}) ma STABILE in stress.")
-        print(f"      Il portafoglio non mostra correlation breakdown significativo.")
+        print(f"      Correlazione alta ({avg_corr:.2f}) ma STABILE in stress")
+        print(f"      No correlation breakdown significativo")
     
     # === 4. PUNTI DI FORZA STRUTTURALI ===
     strengths = identify_structural_strengths(composition, geo_exposure, function_exposure, metrics, weights)

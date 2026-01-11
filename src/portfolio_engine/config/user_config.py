@@ -133,7 +133,7 @@ PORTFOLIO = {
     # =========================
     # USA – SMALL CAP
     # =========================
-    "USSC.L": 0.08,   # USA Small Cap (beta + convexity)
+    "USSC.L": 0.125,   # USA Small Cap (beta + convexity)
     
     # =========================
     # EUROPA
@@ -157,7 +157,7 @@ PORTFOLIO = {
     # =========================
     # GLOBAL SMALL CAP
     # =========================
-    "WSML.L": 0.10,   # Global Small Cap (size premium)
+    "WSML.L": 0.05,   # Global Small Cap (size premium)
     
     # =========================
     # TEMATICI – GROWTH / AI / DEFENCE

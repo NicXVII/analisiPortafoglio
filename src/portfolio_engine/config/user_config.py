@@ -3,7 +3,13 @@ Portfolio Configuration
 =======================
 Configura qui il tuo portafoglio e le opzioni di analisi.
 Modifica questo file senza toccare main.py.
+
+NOTE IMMUTABILITA' (A2 remediation):
+- La configurazione è ora costruita come dataclass immutabile.
+- Nessuna mutation globale: `get_config()` restituisce sempre una copia.
 """
+from dataclasses import dataclass
+from typing import Tuple, Dict, Any
 
 # =========================
 # CENTRALIZED SAMPLE SIZE REQUIREMENTS (Fix C6)
@@ -29,8 +35,8 @@ SAMPLE_SIZE_CONFIG = {
     'regime_min_days': 252,                  # Minimum days for regime analysis
     
     # Monte Carlo simulation
-    'monte_carlo_simulations': 500,          # Number of MC simulations (was hardcoded)
-    'bootstrap_iterations': 200,             # Bootstrap iterations for SE estimation
+    'monte_carlo_simulations': 2000,          # Number of MC simulations (was hardcoded)
+    'bootstrap_iterations': 1000,             # Bootstrap iterations for SE estimation
 }
 
 
@@ -104,6 +110,79 @@ STATISTICAL_PARAMS = {
 OUTPUT_MODE = "professional"  # Options: "retail" | "professional"
 
 # =========================
+# TESTING CONFIGURATION
+# =========================
+# If True, run pytest integration tests at the end of the analysis and
+# print the results in the final output (console/PDF).
+RUN_INTEGRATION_TESTS = True
+
+# =========================
+# PLOTTING CONFIGURATION
+# =========================
+# If True, show charts at the end of the analysis (interactive window).
+# Can be temporarily disabled by setting PORTFOLIO_SHOW_PLOT=false.
+SHOW_PLOTS = True
+
+# =========================
+# PORTFOLIO STORAGE CONFIG
+# =========================
+# Persistent storage of portfolio configurations with hash-based deduplication.
+PORTFOLIO_STORAGE = {
+    "enabled": True,
+    "store_dir": "./output/portfolio_store",
+}
+
+# =========================
+# FX & COST SETTINGS
+# =========================
+FX = {
+    "base_currency": "USD",          # Valuta base per normalizzazione
+    "manual_rates": {},              # Esempio: {"EURUSD": 1.08} se vuoi forzare
+    "warn_on_missing": True,         # Avvisa se manca il cambio
+    "stale_days_warning": 3,         # Warning se ultimo prezzo > 3 giorni di borsa
+}
+
+FEES = {
+    "annual_fee_bps": 20.0,          # 20 bps annuali (0.20%) per costi/commissioni
+}
+
+# =========================
+# RISK CONFIG
+# =========================
+RISK = {
+    "var_method": "historical",      # "historical" | "parametric" | "bootstrap"
+    "var_bootstrap_samples": 200,    # usato se var_method == "bootstrap"
+}
+
+# =========================
+# BIAS ADJUSTMENTS
+# =========================
+BIAS = {
+    "apply_survivorship_haircut": True,
+    "max_annual_penalty": 0.03,      # max -3% annuo su CAGR per confidenza bassa
+}
+
+# =========================
+# OPTIMIZATION CONFIG (Markowitz)
+# =========================
+OPTIMIZATION = {
+    "enabled": True,
+    # Maggiore granularità per analisi: 100 punti sulla frontiera
+    "n_frontier_points": 1000,
+    "max_weight": 0.50,
+    "include_risk_parity": True,
+    "use_shrinkage": True,
+    "show_efficiency_gap": True,
+    "monte_carlo": {
+        "enabled": True,
+        "n_sims": 20000,
+        "horizon_days": 252,
+        "seed": 42,
+        "block_size": 5,
+    },
+}
+
+# =========================
 # RISK INTENT DECLARATION (v3.0)
 # =========================
 # OBBLIGATORIO: Dichiara il livello di rischio che il portafoglio INTENDE assumere.
@@ -112,63 +191,19 @@ OUTPUT_MODE = "professional"  # Options: "retail" | "professional"
 # Valori ammessi:
 #   CONSERVATIVE       - Beta 0.3-0.5,   benchmark 40/60, max DD -15%, vol  6-10%
 #   MODERATE           - Beta 0.5-0.8,   benchmark 60/40, max DD -25%, vol 10-14%
-#   GROWTH_DIVERSIFIED - Beta 0.45-0.75, benchmark 70/30, max DD -32%, vol 12-16%  ⭐ FITS THIS PORTFOLIO
+#   GROWTH_DIVERSIFIED - Beta 0.45-0.75, benchmark 70/30, max DD -32%, vol 12-16%
 #   GROWTH             - Beta 0.8-1.0,   benchmark VT,    max DD -35%, vol 14-18%
 #   AGGRESSIVE         - Beta 1.0-1.3,   benchmark VT,    max DD -45%, vol 18-22%
 #   HIGH_BETA          - Beta 1.3-2.0,   benchmark AVUV,  max DD -55%, vol 22-30%
 #
-# 👉 QUESTO PORTFOLIO: Beta ~0.50 → usa GROWTH_DIVERSIFIED (non AGGRESSIVE!)
-# ⚠️ Senza questo, il motore assume GROWTH e potrebbe penalizzare scelte consapevoli.
-RISK_INTENT = "GROWTH_DIVERSIFIED"  # Beta 0.45-0.75, diversified globally
+# 👉 GROWTH: Massimizzare profitto su 15 anni con beta controllato
+RISK_INTENT = "GROWTH"  # Beta 0.8-1.0, growth focus
 
-# =========================
-# PORTFOLIO ALLOCATION
-# =========================
 PORTFOLIO = {
-    # =========================
-    # USA – LARGE CAP GROWTH
-    # =========================
-    "CSPX.L": 0.22,   # S&P 500 (growth core, beta driver)
-    
-    # =========================
-    # USA – SMALL CAP
-    # =========================
-    "USSC.L": 0.125,   # USA Small Cap (beta + convexity)
-    
-    # =========================
-    # EUROPA
-    # =========================
-    "IMEU.L": 0.12,   # Europa large/mid cap
-    "CUKS.L": 0.04,   # UK Small Cap
-    "CUKX.L": 0.02,   # UK Large Cap
-    
-    # =========================
-    # GIAPPONE
-    # =========================
-    "SJPA.L": 0.06,   # Japan Large Cap
-    "ISJP.L": 0.03,   # Japan Small Cap
-    
-    # =========================
-    # EMERGING MARKETS
-    # =========================
-    "EMIM.L": 0.12,   # EM Broad (growth + beta)
-    "ITWN.L": 0.05,   # Taiwan (semiconductors, convexity)
-    
-    # =========================
-    # GLOBAL SMALL CAP
-    # =========================
-    "WSML.L": 0.05,   # Global Small Cap (size premium)
-    
-    # =========================
-    # TEMATICI – GROWTH / AI / DEFENCE
-    # =========================
-    "SEMI.L": 0.04,   # Semiconductors
-    "DFNS.L": 0.08,   # Defence (geopolitical growth)
-    "INFR.L": 0.04    # Infrastructure / AI backbone
+    "VWCE.DE": 0.70,  # Vanguard FTSE All-World UCITS
+    "IS3N.DE": 0.20,  # iShares Core MSCI EM IMI UCITS
+    "IS3Q.DE": 0.10,  # iShares MSCI World Quality Factor UCITS
 }
-
-                                                                                                                
-
 
 
 
@@ -206,6 +241,71 @@ EXPORT = {
 
 
 # =========================
+# =========================
+# IMMUTABLE PORTFOLIO CONFIG
+# =========================
+
+@dataclass(frozen=True)
+class PortfolioConfig:
+    tickers: Tuple[str, ...]
+    weights: Tuple[float, ...]
+    risk_intent: str
+    analysis: Dict[str, Any]
+    export: Dict[str, Any]
+    run_integration_tests: bool
+    portfolio_storage: Dict[str, Any]
+    optimization: Dict[str, Any]
+    fx: Dict[str, Any]
+    fees: Dict[str, Any]
+    risk: Dict[str, Any]
+    bias: Dict[str, Any]
+
+    def as_dict(self) -> Dict[str, Any]:
+        return {
+            "tickers": list(self.tickers),
+            "weights": list(self.weights),
+            "risk_intent": self.risk_intent,
+            **self.analysis,
+            "export": self.export.copy(),
+            "run_integration_tests": self.run_integration_tests,
+            "portfolio_storage": self.portfolio_storage.copy(),
+            "optimization": self.optimization.copy(),
+            "fx": self.fx.copy(),
+            "fees": self.fees.copy(),
+            "risk": self.risk.copy(),
+            "bias": self.bias.copy(),
+        }
+
+
+def _build_portfolio_config_from_mapping(mapping: Dict[str, float], risk_intent: str) -> PortfolioConfig:
+    tickers = tuple(mapping.keys())
+    weights = tuple(mapping.values())
+    if len(tickers) != len(weights):
+        raise ValueError("Tickers e weights devono avere la stessa lunghezza")
+    total = sum(weights)
+    if abs(total - 1.0) > 0.01:
+        raise ValueError(f"I pesi devono sommare a 1.0 (trovato {total:.2f})")
+    valid_intents = {"CONSERVATIVE", "MODERATE", "BALANCED", "GROWTH", "GROWTH_DIVERSIFIED", "AGGRESSIVE", "HIGH_BETA"}
+    intent = risk_intent.upper() if risk_intent else "GROWTH"
+    if intent not in valid_intents:
+        intent = "GROWTH"
+    return PortfolioConfig(
+        tickers=tickers,
+        weights=weights,
+        risk_intent=intent,
+        analysis=ANALYSIS.copy(),
+        export=EXPORT.copy(),
+        run_integration_tests=RUN_INTEGRATION_TESTS,
+        portfolio_storage=PORTFOLIO_STORAGE.copy(),
+        optimization=OPTIMIZATION.copy(),
+        fx=FX.copy(),
+        fees=FEES.copy(),
+        risk=RISK.copy(),
+        bias=BIAS.copy(),
+    )
+
+
+# =========================
 # CONFIG BUILDER (non modificare)
 # =========================
 def get_config() -> dict:
@@ -213,29 +313,7 @@ def get_config() -> dict:
     Costruisce la configurazione completa per main.py.
     Non modificare questa funzione.
     """
-    tickers = list(PORTFOLIO.keys())
-    weights = list(PORTFOLIO.values())
-    
-    # Validazione
-    total = sum(weights)
-    if abs(total - 1.0) > 0.001:
-        print(f"⚠️  ATTENZIONE: I pesi sommano a {total:.2%}, non 100%!")
-        print(f"   I pesi verranno normalizzati automaticamente.")
-    
-    # Validazione Risk Intent
-    valid_intents = ["CONSERVATIVE", "MODERATE", "BALANCED", "GROWTH", "GROWTH_DIVERSIFIED", "AGGRESSIVE", "HIGH_BETA"]
-    risk_intent = RISK_INTENT.upper() if RISK_INTENT else "GROWTH"
-    if risk_intent not in valid_intents:
-        print(f"⚠️  Risk Intent '{RISK_INTENT}' non valido. Uso GROWTH come default.")
-        risk_intent = "GROWTH"
-    
-    return {
-        "tickers": tickers,
-        "weights": weights,
-        "risk_intent": risk_intent,  # v3.0: Risk Intent Declaration
-        **ANALYSIS,
-        "export": EXPORT,
-    }
+    return _build_portfolio_config_from_mapping(PORTFOLIO, RISK_INTENT).as_dict()
 
 
 # =========================
@@ -424,6 +502,15 @@ def use_preset(name: str) -> dict:
         return dict(PRESETS[name])  # Return copy, not reference
     else:
         raise ValueError(f"Preset '{name}' non trovato. Disponibili: {list(PRESETS.keys())}")
+
+
+def use_preset_config(name: str) -> PortfolioConfig:
+    """
+    Versione immutabile di preset: restituisce PortfolioConfig.
+    """
+    if name not in PRESETS:
+        raise ValueError(f"Preset '{name}' non trovato. Disponibili: {list(PRESETS.keys())}")
+    return _build_portfolio_config_from_mapping(PRESETS[name], RISK_INTENT)
 
 
 # Quick display quando importato

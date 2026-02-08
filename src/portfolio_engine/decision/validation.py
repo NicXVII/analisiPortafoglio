@@ -25,6 +25,8 @@ from typing import Dict, Any, Tuple, List, Optional
 from dataclasses import dataclass
 from enum import Enum
 
+from portfolio_engine.analytics.metrics.basic import calculate_cagr
+from portfolio_engine.analytics.metrics.risk import calculate_max_drawdown, calculate_sharpe_ratio
 
 # ================================================================================
 # DUAL-CORRELATION FRAMEWORK
@@ -158,7 +160,9 @@ def run_walk_forward_validation(
     weights: np.ndarray,
     tickers: List[str],
     n_splits: int = 3,
-    train_ratio: float = 0.7
+    train_ratio: float = 0.7,
+    risk_free_annual: float = 0.0,
+    sharpe_autocorr_lags: int | None = None
 ) -> WalkForwardResult:
     """
     Walk-forward validation with expanding window.
@@ -172,6 +176,8 @@ def run_walk_forward_validation(
         tickers: List of ticker symbols
         n_splits: Number of walk-forward splits
         train_ratio: Initial train/test ratio
+        risk_free_annual: Annual risk-free rate for Sharpe calculations
+        sharpe_autocorr_lags: Optional autocorrelation lag adjustment for Sharpe
         
     Returns:
         WalkForwardResult with stability metrics
@@ -210,8 +216,12 @@ def run_walk_forward_validation(
             continue
         
         # Calculate metrics for each period
-        train_metrics = _calc_period_metrics(train_ret)
-        test_metrics = _calc_period_metrics(test_ret)
+        train_metrics = _calc_period_metrics(
+            train_ret, risk_free_annual=risk_free_annual, sharpe_autocorr_lags=sharpe_autocorr_lags
+        )
+        test_metrics = _calc_period_metrics(
+            test_ret, risk_free_annual=risk_free_annual, sharpe_autocorr_lags=sharpe_autocorr_lags
+        )
         
         split_results.append({
             "split": split_idx + 1,
@@ -281,25 +291,30 @@ def run_walk_forward_validation(
     )
 
 
-def _calc_period_metrics(returns: pd.Series) -> Dict[str, float]:
+def _calc_period_metrics(
+    returns: pd.Series,
+    risk_free_annual: float = 0.0,
+    sharpe_autocorr_lags: int | None = None
+) -> Dict[str, float]:
     """Calculate basic metrics for a return series."""
     if len(returns) < 20:
         return {"sharpe": 0, "cagr": 0, "max_dd": 0, "vol": 0}
     
-    ann_ret = returns.mean() * 252
-    ann_vol = returns.std() * np.sqrt(252)
-    sharpe = ann_ret / ann_vol if ann_vol > 0 else 0
+    ann_vol = returns.std(ddof=1) * np.sqrt(252)
+    sharpe = calculate_sharpe_ratio(
+        returns,
+        risk_free_annual=risk_free_annual,
+        periods=252,
+        autocorr_lags=sharpe_autocorr_lags
+    )
     
     # CAGR
     cum_ret = (1 + returns).cumprod()
-    total_ret = cum_ret.iloc[-1] / cum_ret.iloc[0] - 1
-    n_years = len(returns) / 252
-    cagr = (1 + total_ret) ** (1 / n_years) - 1 if n_years > 0 else 0
+    # Use real calendar span when available for consistency
+    cagr = calculate_cagr(cum_ret, periods_per_year=None)
     
     # Max drawdown
-    rolling_max = cum_ret.expanding().max()
-    drawdown = (cum_ret - rolling_max) / rolling_max
-    max_dd = drawdown.min()
+    max_dd, _, _ = calculate_max_drawdown(cum_ret)
     
     return {
         "sharpe": sharpe,
@@ -353,7 +368,8 @@ class RollingStabilityResult:
 def analyze_rolling_stability(
     prices: pd.DataFrame,
     weights: np.ndarray,
-    window_months: int = 12
+    window_months: int = 12,
+    risk_free_annual: float = 0.0
 ) -> RollingStabilityResult:
     """
     Analyze stability of portfolio parameters over rolling windows.
@@ -367,6 +383,7 @@ def analyze_rolling_stability(
         prices: Price DataFrame
         weights: Portfolio weights
         window_months: Rolling window size in months
+        risk_free_annual: Annual risk-free rate for rolling Sharpe
         
     Returns:
         RollingStabilityResult with stability metrics
@@ -387,7 +404,8 @@ def analyze_rolling_stability(
     portfolio_returns = (returns * weights).sum(axis=1)
     
     # Rolling Sharpe
-    rolling_mean = portfolio_returns.rolling(window).mean() * 252
+    rf_daily = (1 + risk_free_annual) ** (1/252) - 1
+    rolling_mean = (portfolio_returns - rf_daily).rolling(window).mean() * 252
     rolling_vol = portfolio_returns.rolling(window).std() * np.sqrt(252)
     rolling_sharpe = rolling_mean / rolling_vol
     rolling_sharpe = rolling_sharpe.dropna()
@@ -652,7 +670,9 @@ def _generate_soft_reasoning(core_score: float, tactical_score: float,
 def run_out_of_sample_stress(
     prices: pd.DataFrame,
     weights: np.ndarray,
-    test_ratio: float = 0.2
+    test_ratio: float = 0.2,
+    risk_free_annual: float = 0.0,
+    sharpe_autocorr_lags: int | None = None
 ) -> Dict[str, Any]:
     """
     Reserve last portion of data for pure out-of-sample testing.
@@ -664,6 +684,8 @@ def run_out_of_sample_stress(
         prices: Full price history
         weights: Portfolio weights
         test_ratio: Portion to reserve (default 20%)
+        risk_free_annual: Annual risk-free rate for Sharpe calculations
+        sharpe_autocorr_lags: Optional autocorrelation lag adjustment for Sharpe
         
     Returns:
         Dict with out-of-sample metrics
@@ -683,8 +705,12 @@ def run_out_of_sample_stress(
             "message": "Insufficient out-of-sample data (need 3+ months)"
         }
     
-    train_metrics = _calc_period_metrics(train_returns)
-    test_metrics = _calc_period_metrics(test_returns)
+    train_metrics = _calc_period_metrics(
+        train_returns, risk_free_annual=risk_free_annual, sharpe_autocorr_lags=sharpe_autocorr_lags
+    )
+    test_metrics = _calc_period_metrics(
+        test_returns, risk_free_annual=risk_free_annual, sharpe_autocorr_lags=sharpe_autocorr_lags
+    )
     
     # Performance degradation
     sharpe_degradation = (train_metrics["sharpe"] - test_metrics["sharpe"]) / train_metrics["sharpe"] \

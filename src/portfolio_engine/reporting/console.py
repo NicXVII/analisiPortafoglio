@@ -17,16 +17,23 @@ from typing import Dict, Any, List
 import os
 
 from portfolio_engine.data.definitions.taxonomy import (
-    calculate_geographic_exposure, analyze_function_exposure,
-    CORE_GLOBAL_ETF, CORE_REGIONAL_ETF, EMERGING_ETF, SATELLITE_KEYWORDS, REIT_ETF
+    calculate_geographic_exposure,
+    analyze_function_exposure,
+    CORE_GLOBAL_ETF,
+    CORE_REGIONAL_ETF,
+    EMERGING_ETF,
+    SATELLITE_KEYWORDS,
+    REIT_ETF,
 )
-from portfolio_engine.analytics.analysis_monolith import (
-    detect_false_diversification, identify_structural_strengths,
-    generate_verdict_bullets
+from portfolio_engine.data.definitions.etf_classifier import classify_ticker
+from portfolio_engine.analytics.analysis import (
+    detect_false_diversification,
+    identify_structural_strengths,
+    generate_verdict_bullets,
 )
 
 # Import centralized configuration (Fix C6)
-from portfolio_engine.config.user_config import SAMPLE_SIZE_CONFIG, OUTPUT_MODE
+from portfolio_engine.config.user_config import SAMPLE_SIZE_CONFIG, OUTPUT_MODE, SHOW_PLOTS
 
 
 # ================================================================================
@@ -1075,6 +1082,16 @@ def print_senior_architect_analysis(
     print("🏛️  SENIOR PORTFOLIO ARCHITECT ANALYSIS")
     print("    Framework Istituzionale (Vanguard Style)")
     print("=" * 70)
+
+    # === 0. CLASSIFICAZIONE DETERMINISTICA ===
+    print("\n🏷️  CLASSIFICAZIONE ETF (deterministica, no metriche)")
+    print("-" * 50)
+    for t, w in zip(tickers, weights):
+        cls = classify_ticker(t)
+        cat = cls.get("category", "UNKNOWN")
+        risk = cls.get("risk_profile", "UNKNOWN")
+        method = cls.get("method", "")
+        print(f"   {t:<12} {w:>5.1%}  {cat:<20} risk={risk:<10} ({method})")
     
     # === 1. ESPOSIZIONE GEOGRAFICA REALE ===
     geo_exposure = calculate_geographic_exposure(tickers, weights)
@@ -1449,9 +1466,278 @@ def _plot_legacy_charts(equity: pd.Series, returns: pd.Series, save_path: str = 
         plt.savefig(save_path, dpi=150, bbox_inches='tight')
         print(f"\n📊 Grafico legacy salvato in: {save_path}")
     
-    # Show only if explicitly enabled via environment variable
-    # Default: non mostrare (per evitare blocco in ambienti non interattivi)
-    if os.environ.get('PORTFOLIO_SHOW_PLOT', 'false').lower() == 'true':
+    # Show plots based on config (default True), can be disabled via env var.
+    if SHOW_PLOTS and os.environ.get('PORTFOLIO_SHOW_PLOT', 'true').lower() == 'true':
         plt.show()
     
     plt.close()
+
+
+# ================================================================================
+# INTEGRATION TEST OUTPUT
+# ================================================================================
+
+def print_integration_test_results(test_results: dict) -> None:
+    """
+    Print integration test results in a concise, user-facing format.
+    """
+    if not test_results:
+        return
+
+    print("\n" + "=" * 70)
+    print("                     INTEGRATION TEST RESULTS")
+    print("=" * 70)
+
+    status = "PASS" if test_results.get("passed") else "FAIL"
+    summary = test_results.get("summary") or f"exit_code={test_results.get('exit_code')}"
+    duration = test_results.get("duration_seconds")
+
+    print(f"Status: {status}")
+    print(f"Summary: {summary}")
+    if duration is not None:
+        print(f"Duration: {duration:.2f}s")
+
+    stdout_tail = test_results.get("stdout_tail") or []
+    stderr_tail = test_results.get("stderr_tail") or []
+
+    if stdout_tail:
+        print("\nstdout (tail):")
+        for line in stdout_tail:
+            print(f"  {line}")
+
+    if stderr_tail:
+        print("\nstderr (tail):")
+        for line in stderr_tail:
+            print(f"  {line}")
+
+
+# ================================================================================
+# OPTIMIZATION OUTPUT
+# ================================================================================
+
+def print_optimization_analysis(opt_result: dict | None) -> None:
+    """
+    Stampa sintesi analisi di ottimizzazione Markowitz.
+    """
+    if not opt_result:
+        return
+    if isinstance(opt_result, dict) and opt_result.get("error"):
+        print(f"\n[Optimization] skipped: {opt_result['error']}")
+        return
+
+    analysis = opt_result.get("current_vs_optimal", {}) if isinstance(opt_result, dict) else {}
+    curr = analysis.get("current", {})
+    eff = analysis.get("efficiency_analysis", {})
+    suggestions = analysis.get("suggestions", [])
+    key_portfolios = opt_result.get("key_portfolios", {}) if isinstance(opt_result, dict) else {}
+    key_metrics = opt_result.get("key_portfolio_metrics", {}) if isinstance(opt_result, dict) else {}
+    frontier_obj = opt_result.get("frontier") if isinstance(opt_result, dict) else None
+
+    tickers = list(curr.get("weights", {}).keys()) if curr.get("weights") else None
+
+    def _fmt_weights_all(res) -> str:
+        if not res:
+            return "-"
+        try:
+            w = res.weights
+            if tickers and len(tickers) == len(w):
+                pairs = list(zip(tickers, w))
+            else:
+                pairs = list(enumerate(w))
+            return ", ".join(f"{t}:{p*100:.1f}%" for t, p in pairs)
+        except Exception:
+            return "-"
+
+    print("\n" + "=" * 70)
+    print("                  OPTIMIZATION ANALYSIS (Markowitz)")
+    print("=" * 70)
+
+    if curr:
+        print(f"Current Sharpe:        {curr.get('sharpe_ratio', 0):.3f}")
+        print(f"Current Volatility:    {curr.get('volatility', 0):.2%}")
+        print(f"Current Exp. Return:   {curr.get('expected_return', 0):.2%}")
+    if eff:
+        score = eff.get("efficiency_score")
+        if score is not None:
+            print(f"Efficiency score vs. optimal: {score:.1%}")
+        if eff.get("sharpe_gap") is not None:
+            print(f"Sharpe gap: {eff['sharpe_gap']:.3f}")
+        if eff.get("volatility_gap") is not None:
+            print(f"Volatility gap: {eff['volatility_gap']:.2%}")
+
+    if suggestions:
+        print("\nSuggestions:")
+        for s in suggestions:
+            print(f"- {s}")
+
+    if key_portfolios:
+        print("\nKey portfolios (CAGR/Vol/MaxDD/Sharpe | weights):")
+        for name, res in key_portfolios.items():
+            if not res:
+                continue
+            km = key_metrics.get(name, {})
+            cagr = km.get("cagr")
+            vol = km.get("volatility")
+            max_dd = km.get("max_drawdown")
+            sharpe = km.get("sharpe")
+            if cagr is not None:
+                print(f"  {name:12s} CAGR={cagr:.2%}")
+                print(
+                    f"    Vol={vol:.2%} MaxDD={max_dd:.2%} Sharpe={sharpe:.2f} | {_fmt_weights_all(res)}"
+                )
+            else:
+                print(f"  {name:12s} "
+                      f"R={getattr(res, 'expected_return', getattr(res, 'exp_return', 0)):.2%} "
+                      f"V={res.volatility:.2%} "
+                      f"S={res.sharpe_ratio if hasattr(res, 'sharpe_ratio') else res.sharpe:.2f} "
+                      f"| {_fmt_weights_all(res)}")
+
+    if frontier_obj:
+        try:
+            succ = len(frontier_obj.successful_points)
+            print(f"\nFrontier points: {succ} successful")
+        except Exception:
+            pass
+
+
+# ================================================================================
+# DATA QUALITY OUTPUT
+# ================================================================================
+
+def print_data_quality(data_quality: dict | None) -> None:
+    """Stampa sintesi qualità dati (FX, staleness, survivorship, shrinkage)."""
+    if not data_quality:
+        return
+    print("\n" + "=" * 70)
+    print("                        DATA QUALITY")
+    print("=" * 70)
+
+    staleness = data_quality.get("staleness")
+    if staleness:
+        print(f"Staleness: {staleness}")
+
+    fx = data_quality.get("fx", {})
+    if fx:
+        if fx.get("converted"):
+            print(f"FX converted: {fx.get('converted')}")
+        missing_all = (fx.get("missing", []) + fx.get("skipped", []))
+        if missing_all:
+            print(f"FX missing/skipped: {missing_all}")
+
+    surv = data_quality.get("survivorship", {})
+    if surv:
+        label = surv.get("confidence_label")
+        score = surv.get("confidence_score", 0)
+        print(f"Survivorship confidence: {label} ({score:.0%})")
+        if surv.get("warning_level") and surv.get("warning_level") != "LOW":
+            print(f"Survivorship warning: {surv.get('message')}")
+
+    shrink = data_quality.get("shrinkage")
+    if shrink is not None:
+        print(f"Correlation shrinkage intensity: {shrink:.1%}")
+
+
+# ================================================================================
+# SECTOR & HOLDINGS OUTPUT
+# ================================================================================
+
+def print_sector_and_holdings_report(
+    sector_report: dict,
+    holdings_report: dict,
+    top_n: int = 10
+) -> None:
+    """
+    Print sector allocation and top holdings per ETF.
+    """
+    print("\n" + "=" * 70)
+    print("                SECTOR ALLOCATION & TOP HOLDINGS")
+    print("=" * 70)
+
+    # --- Sector allocation ---
+    sectors = (sector_report or {}).get("sectors", {})
+    missing_sectors = (sector_report or {}).get("missing", [])
+
+    print("\n📌 SETTORI (allocazione portafoglio)")
+    print("-" * 50)
+    if sectors:
+        for sector, pct in sectors.items():
+            print(f"  {sector:<20} {pct:>6.1f}%")
+    else:
+        print("  Nessun dato settoriale disponibile.")
+    if missing_sectors:
+        print(f"  Missing sector data: {', '.join(missing_sectors)}")
+
+    # --- Top holdings per ETF ---
+    print("\n📌 TOP HOLDINGS (Top 10 per ETF)")
+    print("-" * 50)
+    by_ticker = (holdings_report or {}).get("by_ticker", {})
+    missing_holdings = (holdings_report or {}).get("missing", [])
+
+    if by_ticker:
+        for ticker, holdings in by_ticker.items():
+            print(f"\n  {ticker}")
+            for h in holdings[:top_n]:
+                name = h.get("name", "N/A")
+                symbol = h.get("symbol")
+                weight = h.get("weight_pct") or h.get("weight") or h.get("holding_percent") or h.get("percent")
+                if weight is None:
+                    weight = h.get("Holding Percent")
+                weight = (weight or 0.0) * (100.0 if (weight or 0.0) <= 1 else 1.0)
+                label = f"{symbol} - {name}" if symbol else name
+                print(f"    {weight:>6.2f}%  {label}")
+    else:
+        print("  Nessun dato holdings disponibile.")
+
+    if missing_holdings:
+        print(f"\n  Missing holdings data: {', '.join(missing_holdings)}")
+
+
+# ================================================================================
+# AGGREGATED TOP HOLDINGS (weighted by portfolio weights)
+# ================================================================================
+
+def print_aggregated_holdings_report(
+    holdings_report: dict,
+    tickers: list,
+    weights: list,
+    top_n: int = 10,
+) -> None:
+    """
+    Aggrega le top holdings a livello di portafoglio pesando le holdings
+    per il peso dell'ETF/fondo nel portafoglio.
+    """
+    if not holdings_report or not tickers or not weights:
+        return
+
+    by_ticker = holdings_report.get("by_ticker", {})
+    agg = {}
+
+    def _weight_from_h(h):
+        pct = h.get("weight_pct") or h.get("weight") or h.get("holding_percent") or h.get("percent") or h.get("Holding Percent")
+        if pct is None:
+            return 0.0
+        try:
+            pct = float(pct)
+        except Exception:
+            return 0.0
+        return pct / 100 if pct > 1 else pct
+
+    for t, w in zip(tickers, weights):
+        for h in by_ticker.get(t, []):
+            sym = h.get("symbol") or h.get("Symbol") or h.get("name") or "UNKNOWN"
+            name = h.get("name") or h.get("Name") or sym
+            hp = _weight_from_h(h)
+            agg_key = sym
+            agg.setdefault(agg_key, {"name": name, "symbol": sym, "weight": 0.0})
+            agg[agg_key]["weight"] += w * hp
+
+    top = sorted(agg.values(), key=lambda x: x["weight"], reverse=True)[:top_n]
+
+    if not top:
+        return
+
+    print("\n" + "=" * 70)
+    print("         TOP HOLDINGS AGGREGATE (pesate per peso ETF)")
+    print("=" * 70)
+    for row in top:
+        print(f"  {row['symbol']:<12} {row['weight']*100:>6.2f}%  {row['name']}")

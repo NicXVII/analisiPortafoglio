@@ -891,3 +891,69 @@ class AnalysisResult:
             f"  actions={len(self.prescriptive_actions)} prescriptive\n"
             f")"
         )
+
+
+# ================================================================================
+# OPTIMIZATION DATACLASSES
+# ================================================================================ 
+
+
+@dataclass
+class OptimizationResult:
+    """Risultato di un'ottimizzazione Markowitz."""
+    weights: np.ndarray
+    expected_return: float
+    volatility: float
+    sharpe_ratio: float
+    success: bool
+    message: str
+    optimization_type: str = "unknown"
+
+    @property
+    def sharpe(self) -> float:
+        """Backward-compatible alias for sharpe_ratio."""
+        return self.sharpe_ratio
+
+    def to_dict(self, tickers: List[str] | None = None) -> Dict[str, Any]:
+        data = {
+            "expected_return": self.expected_return,
+            "volatility": self.volatility,
+            "sharpe_ratio": self.sharpe_ratio,
+            "success": self.success,
+            "message": self.message,
+            "optimization_type": self.optimization_type,
+            "weights": self.weights.tolist(),
+        }
+        if tickers and len(tickers) == len(self.weights):
+            data["weights_by_ticker"] = dict(zip(tickers, self.weights.tolist()))
+        return data
+
+
+@dataclass
+class EfficientFrontier:
+    """Frontiera efficiente con portafogli chiave."""
+    points: List[OptimizationResult]
+    min_variance: OptimizationResult
+    max_sharpe: OptimizationResult
+    max_return: OptimizationResult
+    risk_parity: Optional[OptimizationResult] = None
+
+    @property
+    def successful_points(self) -> List[OptimizationResult]:
+        return [p for p in self.points if p.success]
+
+    @property
+    def return_range(self) -> Tuple[float, float]:
+        succ = self.successful_points
+        if not succ:
+            return (0.0, 0.0)
+        rets = [p.expected_return for p in succ]
+        return (min(rets), max(rets))
+
+    @property
+    def volatility_range(self) -> Tuple[float, float]:
+        succ = self.successful_points
+        if not succ:
+            return (0.0, 0.0)
+        vols = [p.volatility for p in succ]
+        return (min(vols), max(vols))

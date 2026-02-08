@@ -33,6 +33,7 @@ from portfolio_engine.data.definitions.taxonomy import (
     THEMATIC_PURE_ETF, EM_SINGLE_COUNTRY_ETF,
     BOND_ETF, GOLD_COMMODITY_ETF, DIVIDEND_INCOME_ETF,
 )
+from portfolio_engine.data.definitions.etf_classifier import classify_ticker
 
 
 # ================================================================================
@@ -143,18 +144,27 @@ def detect_portfolio_type(
             core_regional_weight += w
             core_regional_tickers.append(t)
         else:
-            # Default: classifica per volatilità se disponibile
-            if t in asset_metrics.index and 'Vol' in asset_metrics.columns:
-                vol = asset_metrics.loc[t, 'Vol']
-                if vol > 0.35:
-                    thematic_pure_weight += w
-                    thematic_pure_tickers.append(t)
-                elif vol > 0.25:
-                    sector_weight += w
-                    sector_tickers.append(t)
-                else:
-                    other_equity_weight += w
-                    other_tickers.append(t)
+            # Fallback: classificatore deterministico (no logica circolare su volatilità)
+            cls = classify_ticker(t)
+            cat = cls.get("category", "UNKNOWN")
+            if cat == "FIXED_INCOME":
+                bond_weight += w
+                bond_tickers.append(t)
+            elif cat == "COMMODITY":
+                gold_commodity_weight += w
+                gold_commodity_tickers.append(t)
+            elif cat == "REAL_ESTATE":
+                reit_weight += w
+                reit_tickers.append(t)
+            elif cat == "EQUITY_EMERGING":
+                em_broad_weight += w
+                em_broad_tickers.append(t)
+            elif cat == "EQUITY_SMALL":
+                small_cap_weight += w
+                small_cap_tickers.append(t)
+            elif cat == "EQUITY_THEMATIC" or cat == "LEVERAGED":
+                thematic_pure_weight += w
+                thematic_pure_tickers.append(t)
             else:
                 other_equity_weight += w
                 other_tickers.append(t)

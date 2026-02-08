@@ -23,124 +23,136 @@ survivorship bias adjustment factor.
 
 import numpy as np
 import pandas as pd
-import yfinance as yf
 from datetime import datetime, timedelta
-from typing import Optional, Tuple, Dict, Any
+from typing import Optional, Tuple, Dict, Any, List
+
+from portfolio_engine.data_providers.yahoo_client import download_prices
+from portfolio_engine.utils.logger import get_logger
+
+logger = get_logger(__name__)
 
 
 # ================================================================================
-# SURVIVORSHIP BIAS CHECK
+# SURVIVORSHIP BIAS CHECK (enhanced)
 # ================================================================================
 
-def check_survivorship_bias_warning(tickers: list) -> dict:
+def _confidence_to_label(score: float) -> str:
+    if score >= 0.80:
+        return "HIGH"
+    if score >= 0.60:
+        return "MEDIUM"
+    if score >= 0.40:
+        return "LOW"
+    return "VERY_LOW"
+
+
+def _generate_survivorship_recommendation(warnings: List[Dict[str, Any]], confidence: float) -> str:
+    if confidence < 0.50:
+        return ("ATTENZIONE: dati potenzialmente distorti da survivorship bias. "
+                "Ridurre peso ETF tematici/leveraged, usare periodo più breve, "
+                "interpretare le metriche con cautela.")
+    if confidence < 0.70:
+        return ("Bias moderato: metriche affidabili per core ETF, ma cautela su tematici. "
+                "Backtest potrebbe essere ottimistico del 5-15%.")
+    return ("Bias contenuto: risultati ragionevolmente affidabili per ETF core/large.")
+
+
+def check_survivorship_bias_warning(
+    tickers: list,
+    returns: Optional[pd.DataFrame] = None,
+    start_date: Optional[datetime] = None
+) -> dict:
     """
-    FIX ISSUE #1: Genera warning ENHANCED su survivorship bias.
-    
-    Yahoo Finance non include ETF delisted/falliti.
-    Questo sistema categorizza il rischio e fornisce quantificazione.
-    
-    Returns:
-        Dict con warning_level, message, e estimated impact
+    Analisi avanzata del survivorship bias (Fix M1).
+
+    - Usa keyword risk buckets (leveraged/thematic/regional)
+    - Misura copertura storica effettiva vs richiesta
+    - Calcola un confidence_score 0-1 per l'attendibilità delle metriche
     """
-    # ETF ad alto rischio di survivorship bias (tematici, leveraged, settoriali)
-    high_risk_keywords = ['ARK', 'THEMATIC', 'ROBO', 'CYBR', 'HACK', 'MOON', 
-                          'JETS', 'BETZ', 'NERD', '3X', '2X', 'LABU', 'SOXL',
-                          'TQQQ', 'SQQQ', 'UVXY', 'VXX', 'SPAC', 'MEME',
-                          'BUZZ', 'GUSH', 'DRIP', 'NUGT', 'DUST']
-    
-    # ETF settoriali con storia di fallimenti
-    sector_risk_keywords = ['CLEAN', 'SOLAR', 'LITHIUM', 'CANNABIS', 'WEED',
-                            'ESPO', 'HERO', 'GAME', 'METV']
-    
-    # ETF regionali/paese con rischio delisting
-    regional_risk = ['GREK', 'TUR', 'RSX', 'ERUS', 'ARGT']  # Russia, Turchia, etc.
-    
-    high_risk_tickers = []
-    sector_risk_tickers = []
-    regional_risk_tickers = []
-    
-    for t in tickers:
-        t_upper = t.upper().split('.')[0]
-        if any(kw in t_upper for kw in high_risk_keywords):
-            high_risk_tickers.append(t)
-        elif any(kw in t_upper for kw in sector_risk_keywords):
-            sector_risk_tickers.append(t)
-        elif t_upper in regional_risk:
-            regional_risk_tickers.append(t)
-    
-    # Calcola estimated impact
-    # Studi accademici: survivorship bias overstate returns ~0.5-1.5% annuo per category
-    total_risky = len(high_risk_tickers) + len(sector_risk_tickers) + len(regional_risk_tickers)
-    total_tickers = len(tickers)
-    risky_pct = total_risky / total_tickers if total_tickers > 0 else 0
-    
-    # Impatto stimato (conservativo)
-    if high_risk_tickers:
-        estimated_cagr_bias = 0.015  # 1.5% per leveraged/thematic
-    elif sector_risk_tickers:
-        estimated_cagr_bias = 0.010  # 1.0% per settoriali
-    elif regional_risk_tickers:
-        estimated_cagr_bias = 0.005  # 0.5% per regionali
-    else:
-        estimated_cagr_bias = 0.003  # 0.3% baseline (anche per core ETF)
-    
-    # Scale by percentage of risky tickers
-    estimated_cagr_bias *= risky_pct + 0.2  # +0.2 baseline per tutti
-    
-    if len(high_risk_tickers) >= 3:
-        return {
-            "warning_level": "CRITICAL",
-            "message": (
-                f"⛔ SURVIVORSHIP BIAS CRITICO: {len(high_risk_tickers)} ETF leveraged/tematici.\n"
-                f"   Tickers: {', '.join(high_risk_tickers)}\n"
-                f"   ETF simili falliti (XIV, TVIX, etc.) NON sono nei dati Yahoo.\n"
-                f"   CAGR potenzialmente sovrastimato di {estimated_cagr_bias:.1%} o più."
-            ),
-            "tickers_affected": high_risk_tickers,
-            "estimated_cagr_overstatement": estimated_cagr_bias,
-            "methodology_note": (
-                "Fonte: Brown et al. (1992), Elton et al. (1996) - "
-                "Survivorship bias in mutual fund data ~0.5-1.5%/anno"
-            )
-        }
-    elif len(high_risk_tickers) >= 1 or len(sector_risk_tickers) >= 2:
-        all_risky = high_risk_tickers + sector_risk_tickers
-        return {
-            "warning_level": "HIGH",
-            "message": (
-                f"⚠️ SURVIVORSHIP BIAS ELEVATO: {len(all_risky)} ETF ad alto rischio.\n"
-                f"   Tickers: {', '.join(all_risky)}\n"
-                f"   Stima CAGR overstatement: +{estimated_cagr_bias:.2%}/anno"
-            ),
-            "tickers_affected": all_risky,
-            "estimated_cagr_overstatement": estimated_cagr_bias,
-        }
-    elif sector_risk_tickers or regional_risk_tickers:
-        all_risky = sector_risk_tickers + regional_risk_tickers
-        return {
-            "warning_level": "MEDIUM",
-            "message": (
-                f"⚠️ SURVIVORSHIP BIAS MODERATO: {len(all_risky)} ETF settoriali/regionali.\n"
-                f"   Tickers: {', '.join(all_risky)}\n"
-                f"   Stima CAGR overstatement: +{estimated_cagr_bias:.2%}/anno"
-            ),
-            "tickers_affected": all_risky,
-            "estimated_cagr_overstatement": estimated_cagr_bias,
-        }
-    else:
-        return {
-            "warning_level": "LOW",
-            "message": (
-                f"ℹ️ Survivorship bias presente ma limitato (solo ETF core/regionali).\n"
-                f"   Stima CAGR overstatement baseline: +{estimated_cagr_bias:.2%}/anno"
-            ),
-            "tickers_affected": [],
-            "estimated_cagr_overstatement": estimated_cagr_bias,
-            "methodology_note": (
-                "Anche ETF core hanno survivorship bias: "
-                "fondi simili chiusi non appaiono nei dati storici"
-            )
-        }
+    warnings: List[Dict[str, Any]] = []
+    confidence_penalty = 0.0
+
+    high_risk_keywords = ['ARK', 'TQQQ', 'SQQQ', 'UVXY', 'SPXU', 'TECL', 'LABU', 'SOXL']
+    thematic_keywords = ['ROBOT', 'SEMI', 'CLEAN', 'CYBER', 'GENOME', 'ESPO', 'BOTZ', 'ROBO', 'METV']
+    regional_risk = ['GREK', 'TUR', 'RSX', 'ERUS', 'ARGT']
+
+    for ticker in tickers:
+        t = ticker.upper()
+        if any(kw in t for kw in high_risk_keywords):
+            warnings.append({
+                "ticker": ticker,
+                "type": "LEVERAGED_INVERSE",
+                "severity": "HIGH",
+                "message": f"{ticker}: ETF leveraged/inverse → survivorship bias elevato."
+            })
+            confidence_penalty += 0.15
+        elif any(kw in t for kw in thematic_keywords):
+            warnings.append({
+                "ticker": ticker,
+                "type": "THEMATIC",
+                "severity": "MEDIUM",
+                "message": f"{ticker}: ETF tematico → bias moderato (alto turnover)."
+            })
+            confidence_penalty += 0.08
+        elif t.split('.')[0] in regional_risk:
+            warnings.append({
+                "ticker": ticker,
+                "type": "REGIONAL_HIGH_RISK",
+                "severity": "MEDIUM",
+                "message": f"{ticker}: Paese con storico delisting/sospensioni."
+            })
+            confidence_penalty += 0.05
+
+    # Copertura storica effettiva
+    coverage_ratio = None
+    if returns is not None and not returns.empty and start_date:
+        years_requested = (datetime.now() - start_date).days / 365.25
+        coverage = []
+        for ticker in tickers:
+            if ticker in returns.columns:
+                valid = returns[ticker].dropna()
+                if len(valid) > 0:
+                    first_date = valid.index[0]
+                    years_actual = (valid.index[-1] - first_date).days / 365.25
+                    coverage.append(years_actual / max(years_requested, 0.1))
+                    if years_actual / max(years_requested, 0.1) < 0.5:
+                        warnings.append({
+                            "ticker": ticker,
+                            "type": "SHORT_HISTORY",
+                            "severity": "HIGH",
+                            "message": f"{ticker}: solo {years_actual:.1f} anni di storia "
+                                       f"su {years_requested:.1f} richiesti."
+                        })
+                        confidence_penalty += 0.10
+        if coverage:
+            coverage_ratio = float(np.mean(coverage))
+
+    base_confidence = 0.85
+    final_confidence = max(0.30, base_confidence - confidence_penalty)
+    confidence_label = _confidence_to_label(final_confidence)
+
+    warning_level = "LOW"
+    if confidence_label == "MEDIUM":
+        warning_level = "MEDIUM"
+    elif confidence_label == "LOW":
+        warning_level = "HIGH"
+    elif confidence_label == "VERY_LOW":
+        warning_level = "CRITICAL"
+
+    recommendation = _generate_survivorship_recommendation(warnings, final_confidence)
+    message = (f"Survivorship bias: confidenza {confidence_label} ({final_confidence:.0%}). "
+               f"Red flags: {len(warnings)}. {recommendation}")
+
+    result = {
+        "warning_level": warning_level,
+        "message": message,
+        "warnings": warnings,
+        "confidence_score": final_confidence,
+        "confidence_label": confidence_label,
+        "coverage_ratio": coverage_ratio,
+        "recommendation": recommendation,
+    }
+    return result
 
 
 def detect_illiquidity_issues(prices: pd.DataFrame) -> dict:
@@ -220,54 +232,7 @@ def detect_illiquidity_issues(prices: pd.DataFrame) -> dict:
 
 
 # ================================================================================
-# DATA CACHING
-# ================================================================================
-
-import hashlib
-import os
-import pickle
-
-CACHE_DIR = ".data_cache"
-
-def _get_cache_key(tickers: list, start: str, end: str) -> str:
-    """Genera chiave univoca per cache."""
-    key_str = f"{sorted(tickers)}_{start}_{end}"
-    return hashlib.md5(key_str.encode()).hexdigest()
-
-
-def _get_cache_path(cache_key: str) -> str:
-    """Path completo del file cache."""
-    os.makedirs(CACHE_DIR, exist_ok=True)
-    return os.path.join(CACHE_DIR, f"{cache_key}.pkl")
-
-
-def _load_from_cache(cache_key: str) -> Optional[pd.DataFrame]:
-    """Carica dati da cache se esistono e sono recenti (< 24h)."""
-    cache_path = _get_cache_path(cache_key)
-    if os.path.exists(cache_path):
-        # Check se cache è recente (< 24 ore)
-        cache_age = datetime.now().timestamp() - os.path.getmtime(cache_path)
-        if cache_age < 86400:  # 24 ore
-            try:
-                with open(cache_path, 'rb') as f:
-                    return pickle.load(f)
-            except:
-                pass
-    return None
-
-
-def _save_to_cache(cache_key: str, data: pd.DataFrame) -> None:
-    """Salva dati in cache."""
-    try:
-        cache_path = _get_cache_path(cache_key)
-        with open(cache_path, 'wb') as f:
-            pickle.dump(data, f)
-    except:
-        pass  # Ignora errori di cache
-
-
-# ================================================================================
-# DATA DOWNLOAD
+# DATA DOWNLOAD (delegated to data_providers)
 # ================================================================================
 
 def download_data(tickers: list, start: str, end: Optional[str] = None, use_cache: bool = True) -> pd.DataFrame:
@@ -286,52 +251,94 @@ def download_data(tickers: list, start: str, end: Optional[str] = None, use_cach
     Returns:
         DataFrame con prezzi di chiusura
     """
-    end_str = end or datetime.now().strftime("%Y-%m-%d")
-    
-    # Try cache first
-    cache_key = None
-    if use_cache:
-        cache_key = _get_cache_key(tickers, start, end_str)
-        cached = _load_from_cache(cache_key)
-        if cached is not None:
-            empty_cols = [c for c in cached.columns if cached[c].isna().all()]
-            if empty_cols:
-                # Cache incompleta: forza nuovo download
-                cached = None
-            else:
-                return cached
-    
-    # Download fresh
-    data = yf.download(tickers, start=start, end=end, auto_adjust=True, progress=False)
-    
-    if isinstance(data.columns, pd.MultiIndex):
-        data = data["Close"]
-    else:
-        if len(tickers) == 1:
-            data = data[["Close"]].rename(columns={"Close": tickers[0]})
-        else:
-            data = data["Close"]
-    
-    # Retry individually if some columns sono NaN (yfinance download batches può fallire parzialmente)
-    if not data.empty:
-        empty_cols = [c for c in data.columns if data[c].isna().all()]
-        if empty_cols:
-            for t in empty_cols:
-                try:
-                    single = yf.download(t, start=start, end=end, auto_adjust=True, progress=False)
-                    if not single.empty:
-                        if "Close" in single.columns:
-                            data[t] = single["Close"]
-                except Exception:
-                    pass
-            # Re-drop completely empty columns after retry
-            data = data[[c for c in data.columns if not data[c].isna().all()]]
+    return download_prices(tickers, start=start, end=end, use_cache=use_cache)
 
-    # Save to cache
-    if use_cache and not data.empty:
-        _save_to_cache(cache_key, data)
-    
-    return data
+
+def get_currency_map(tickers: list) -> dict:
+    """
+    Recupera valuta di quotazione per ciascun ticker (best-effort via yfinance).
+    """
+    import yfinance as yf
+    currencies = {}
+    for t in tickers:
+        cur = None
+        try:
+            info = yf.Ticker(t).fast_info
+            cur = getattr(info, "currency", None) or (info.get("currency") if isinstance(info, dict) else None)
+        except Exception:
+            cur = None
+        currencies[t] = cur
+    return currencies
+
+
+def convert_to_base_currency(
+    prices: pd.DataFrame,
+    currency_map: dict,
+    base_currency: str,
+    manual_rates: dict | None = None,
+    warn_on_missing: bool = True,
+    return_info: bool = False,
+) -> pd.DataFrame | tuple:
+    """
+    Converte i prezzi nella valuta base usando tassi FX di Yahoo o manuali.
+    - Se currency == base → nessuna conversione
+    - Ticker FX usato: f"{cur}{base}=X" (es. EURUSD=X)
+    - manual_rates può fornire override (es. {"EURUSD": 1.08})
+    """
+    manual_rates = manual_rates or {}
+    info = {"missing": [], "converted": [], "skipped": []}
+
+    if prices.empty or not currency_map:
+        return (prices, info) if return_info else prices
+
+    converted = prices.copy()
+    unique_currencies = {c for c in currency_map.values() if c}
+    if unique_currencies <= {None, base_currency}:
+        return (converted, info) if return_info else converted
+
+    import yfinance as yf
+    for t in prices.columns:
+        cur = currency_map.get(t)
+        if not cur or cur == base_currency:
+            continue
+        pair = f"{cur}{base_currency}=X"
+        rate_series = None
+        if pair in manual_rates:
+            rate_series = pd.Series(manual_rates[pair], index=prices.index)
+        else:
+            try:
+                fx = yf.download(pair, start=str(prices.index.min().date()), end=str(prices.index.max().date()), progress=False)
+                # Normalizza a Series
+                if isinstance(fx, pd.DataFrame):
+                    if isinstance(fx.columns, pd.MultiIndex):
+                        fx = fx["Close"]
+                    if "Close" in fx.columns:
+                        fx = fx["Close"]
+                    elif fx.shape[1] == 1:
+                        fx = fx.iloc[:, 0]
+                fx = fx.squeeze()
+                if fx.empty:
+                    rate_series = None
+                else:
+                    rate_series = fx.reindex(prices.index).ffill().bfill()
+            except Exception:
+                rate_series = None
+        if rate_series is None:
+            if warn_on_missing:
+                logger.warning(f"FX missing for {t} ({cur}->{base_currency}); leaving unconverted.")
+            info["missing"].append(t)
+            continue
+        # Allinea il tasso all'indice originale dei prezzi per evitare mismatch di lunghezza
+        rate_on_prices = rate_series.reindex(prices.index).ffill().bfill()
+        if len(rate_on_prices) != len(prices):
+            logger.warning(f"FX series length mismatch for {t}; skipping conversion.")
+            info["skipped"].append(t)
+            continue
+        converted[t] = prices[t] * rate_on_prices
+        info["converted"].append(t)
+        logger.info(f"Converted {t} from {cur} to {base_currency} using {pair}")
+
+    return (converted, info) if return_info else converted
 
 
 def calculate_start_date(years: int, end_date: Optional[str] = None) -> str:
@@ -352,6 +359,19 @@ def calculate_start_date(years: int, end_date: Optional[str] = None) -> str:
     end = datetime.strptime(end_date, "%Y-%m-%d") if end_date else datetime.now()
     start = end - relativedelta(years=years)
     return start.strftime("%Y-%m-%d")
+
+
+def check_staleness(prices: pd.DataFrame, limit_days: int = 3) -> Optional[str]:
+    """
+    Warning se l'ultimo prezzo è più vecchio di limit_days di borsa.
+    """
+    if prices.empty:
+        return "Dati vuoti"
+    last_date = prices.index.max()
+    delta = datetime.now().date() - last_date.date()
+    if delta.days > limit_days:
+        return f"Ultimo prezzo del {last_date.date()} (>{limit_days} giorni fa)"
+    return None
 
 
 # ================================================================================

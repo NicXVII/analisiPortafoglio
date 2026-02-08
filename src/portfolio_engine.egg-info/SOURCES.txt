@@ -11,7 +11,14 @@ src/portfolio_engine/analytics/analysis_monolith.py
 src/portfolio_engine/analytics/metrics_monolith.py
 src/portfolio_engine/analytics/regime.py
 src/portfolio_engine/analytics/metrics/__init__.py
+src/portfolio_engine/analytics/metrics/basic.py
+src/portfolio_engine/analytics/metrics/confidence.py
+src/portfolio_engine/analytics/metrics/contribution.py
+src/portfolio_engine/analytics/metrics/risk.py
 src/portfolio_engine/analytics/portfolio_analysis/__init__.py
+src/portfolio_engine/analytics/portfolio_analysis/resilience.py
+src/portfolio_engine/analytics/portfolio_analysis/temporal.py
+src/portfolio_engine/analytics/portfolio_analysis/type_detection.py
 src/portfolio_engine/config/__init__.py
 src/portfolio_engine/config/thresholds.py
 src/portfolio_engine/config/user_config.py

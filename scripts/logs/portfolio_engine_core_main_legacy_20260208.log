@@ -1,0 +1,199 @@
+2026-02-08 11:02:11 | [32mINFO[0m | portfolio_engine.core.main_legacy | Starting portfolio analysis
+2026-02-08 11:02:11 | [32mINFO[0m | portfolio_engine.core.main_legacy | Portfolio storage: duplicate skipped (hash=ebda778355926184ee79b72820e6811c591a734b4c9ffabeb4b07c7fe53634ed)
+2026-02-08 11:02:56 | [33mWARNING[0m | portfolio_engine.core.main_legacy | CRISIS DETECTION:
+2026-02-08 11:02:56 | [33mWARNING[0m | portfolio_engine.core.main_legacy |   I dati includono 3 periodi di crisi:
+2026-02-08 11:02:56 | [33mWARNING[0m | portfolio_engine.core.main_legacy |   • Q4 2018 Selloff (known_dates)
+2026-02-08 11:02:56 | [33mWARNING[0m | portfolio_engine.core.main_legacy |   • COVID Crash (known_dates)
+2026-02-08 11:02:56 | [33mWARNING[0m | portfolio_engine.core.main_legacy |   • Rate Tightening 2022 (known_dates)
+2026-02-08 11:02:56 | [33mWARNING[0m | portfolio_engine.core.main_legacy |   Max Drawdown osservato: -33.9%
+2026-02-08 11:02:56 | [32mINFO[0m | portfolio_engine.core.main_legacy |   → Monte Carlo userà scenari strutturali, non vol doubling
+2026-02-08 11:02:56 | [32mINFO[0m | portfolio_engine.core.main_legacy | COSTI TRANSAZIONE E FISCALI:
+2026-02-08 11:02:56 | [32mINFO[0m | portfolio_engine.core.main_legacy |   Rebalancing costs:     0.39%/anno
+2026-02-08 11:02:56 | [32mINFO[0m | portfolio_engine.core.main_legacy |   Tax drag (dividendi):  0.30%/anno
+2026-02-08 11:02:56 | [32mINFO[0m | portfolio_engine.core.main_legacy |   ─────────────────────────
+2026-02-08 11:02:56 | [32mINFO[0m | portfolio_engine.core.main_legacy |   TOTALE:                0.69%/anno
+2026-02-08 11:02:56 | [32mINFO[0m | portfolio_engine.core.main_legacy |   CAGR Gross → Net:      12.01% → 11.32%
+2026-02-08 11:02:56 | [32mINFO[0m | portfolio_engine.core.main_legacy | =====================================================================
+2026-02-08 11:02:56 | [32mINFO[0m | portfolio_engine.core.main_legacy |                  RISK INTENT ANALYSIS v3.0
+2026-02-08 11:02:56 | [32mINFO[0m | portfolio_engine.core.main_legacy | =====================================================================
+2026-02-08 11:02:56 | [32mINFO[0m | portfolio_engine.core.main_legacy | =====================================================================
+2026-02-08 11:02:56 | [32mINFO[0m | portfolio_engine.core.main_legacy |                  GATE SYSTEM v4.1
+2026-02-08 11:02:56 | [32mINFO[0m | portfolio_engine.core.main_legacy | =====================================================================
+2026-02-08 11:02:56 | [32mINFO[0m | portfolio_engine.core.main_legacy | SOFT CLASSIFICATION (v4.3):
+2026-02-08 11:02:56 | [32mINFO[0m | portfolio_engine.core.main_legacy |   Core Score:     28/100
+2026-02-08 11:02:56 | [32mINFO[0m | portfolio_engine.core.main_legacy |   Tactical Score: 8/100
+2026-02-08 11:02:56 | [32mINFO[0m | portfolio_engine.core.main_legacy |   Conviction:     51/100
+2026-02-08 11:02:56 | [32mINFO[0m | portfolio_engine.core.main_legacy |   Primary Type:   EQUITY_MULTI_BLOCK (confidence: 51%)
+2026-02-08 11:02:56 | [32mINFO[0m | portfolio_engine.core.main_legacy |   Alternatives:   EQUITY_MULTI_BLOCK(28%), STRUCTURED_MULTI_ASSET(14%)
+2026-02-08 11:02:56 | [32mINFO[0m | portfolio_engine.core.main_legacy |   Core Score: 28/100 | Tactical Score: 8/100
+2026-02-08 11:02:58 | [32mINFO[0m | portfolio_engine.core.main_legacy | ML structured export saved: output/data/ml_structured_export_20260208_110258.json
+2026-02-08 11:02:58 | [32mINFO[0m | portfolio_engine.core.main_legacy | Structured output saved: output/data/analysis_result.json
+2026-02-08 11:02:59 | [32mINFO[0m | portfolio_engine.core.main_legacy | Report PDF generato: /home/nic/Desktop/Developer/GitHub/analisiPortafogli/output/portfolio_analysis.pdf
+2026-02-08 13:25:16 | [32mINFO[0m | portfolio_engine.core.main_legacy | Starting portfolio analysis
+2026-02-08 13:25:16 | [32mINFO[0m | portfolio_engine.core.main_legacy | Portfolio storage: duplicate skipped (hash=ebda778355926184ee79b72820e6811c591a734b4c9ffabeb4b07c7fe53634ed)
+2026-02-08 13:26:06 | [33mWARNING[0m | portfolio_engine.core.main_legacy | CRISIS DETECTION:
+2026-02-08 13:26:06 | [33mWARNING[0m | portfolio_engine.core.main_legacy |   I dati includono 3 periodi di crisi:
+2026-02-08 13:26:06 | [33mWARNING[0m | portfolio_engine.core.main_legacy |   • Q4 2018 Selloff (known_dates)
+2026-02-08 13:26:06 | [33mWARNING[0m | portfolio_engine.core.main_legacy |   • COVID Crash (known_dates)
+2026-02-08 13:26:06 | [33mWARNING[0m | portfolio_engine.core.main_legacy |   • Rate Tightening 2022 (known_dates)
+2026-02-08 13:26:06 | [33mWARNING[0m | portfolio_engine.core.main_legacy |   Max Drawdown osservato: -33.9%
+2026-02-08 13:26:06 | [32mINFO[0m | portfolio_engine.core.main_legacy |   → Monte Carlo userà scenari strutturali, non vol doubling
+2026-02-08 13:26:07 | [32mINFO[0m | portfolio_engine.core.main_legacy | COSTI TRANSAZIONE E FISCALI:
+2026-02-08 13:26:07 | [32mINFO[0m | portfolio_engine.core.main_legacy |   Rebalancing costs:     0.39%/anno
+2026-02-08 13:26:07 | [32mINFO[0m | portfolio_engine.core.main_legacy |   Tax drag (dividendi):  0.30%/anno
+2026-02-08 13:26:07 | [32mINFO[0m | portfolio_engine.core.main_legacy |   ─────────────────────────
+2026-02-08 13:26:07 | [32mINFO[0m | portfolio_engine.core.main_legacy |   TOTALE:                0.69%/anno
+2026-02-08 13:26:07 | [32mINFO[0m | portfolio_engine.core.main_legacy |   CAGR Gross → Net:      12.01% → 11.32%
+2026-02-08 13:26:07 | [32mINFO[0m | portfolio_engine.core.main_legacy | =====================================================================
+2026-02-08 13:26:07 | [32mINFO[0m | portfolio_engine.core.main_legacy |                  RISK INTENT ANALYSIS v3.0
+2026-02-08 13:26:07 | [32mINFO[0m | portfolio_engine.core.main_legacy | =====================================================================
+2026-02-08 13:26:07 | [32mINFO[0m | portfolio_engine.core.main_legacy | =====================================================================
+2026-02-08 13:26:07 | [32mINFO[0m | portfolio_engine.core.main_legacy |                  GATE SYSTEM v4.1
+2026-02-08 13:26:07 | [32mINFO[0m | portfolio_engine.core.main_legacy | =====================================================================
+2026-02-08 13:26:07 | [32mINFO[0m | portfolio_engine.core.main_legacy | SOFT CLASSIFICATION (v4.3):
+2026-02-08 13:26:07 | [32mINFO[0m | portfolio_engine.core.main_legacy |   Core Score:     28/100
+2026-02-08 13:26:07 | [32mINFO[0m | portfolio_engine.core.main_legacy |   Tactical Score: 8/100
+2026-02-08 13:26:07 | [32mINFO[0m | portfolio_engine.core.main_legacy |   Conviction:     51/100
+2026-02-08 13:26:07 | [32mINFO[0m | portfolio_engine.core.main_legacy |   Primary Type:   EQUITY_MULTI_BLOCK (confidence: 51%)
+2026-02-08 13:26:07 | [32mINFO[0m | portfolio_engine.core.main_legacy |   Alternatives:   EQUITY_MULTI_BLOCK(28%), STRUCTURED_MULTI_ASSET(14%)
+2026-02-08 13:26:07 | [32mINFO[0m | portfolio_engine.core.main_legacy |   Core Score: 28/100 | Tactical Score: 8/100
+2026-02-08 13:26:09 | [32mINFO[0m | portfolio_engine.core.main_legacy | ML structured export saved: output/data/ml_structured_export_20260208_132609.json
+2026-02-08 13:26:09 | [32mINFO[0m | portfolio_engine.core.main_legacy | Structured output saved: output/data/analysis_result.json
+2026-02-08 13:26:09 | [32mINFO[0m | portfolio_engine.core.main_legacy | Report PDF generato: /home/nic/Desktop/Developer/GitHub/analisiPortafogli/output/portfolio_analysis.pdf
+2026-02-08 14:14:21 | [32mINFO[0m | portfolio_engine.core.main_legacy | Starting portfolio analysis
+2026-02-08 14:14:21 | [32mINFO[0m | portfolio_engine.core.main_legacy | Portfolio storage: duplicate skipped (hash=ebda778355926184ee79b72820e6811c591a734b4c9ffabeb4b07c7fe53634ed)
+2026-02-08 14:15:08 | [33mWARNING[0m | portfolio_engine.core.main_legacy | CRISIS DETECTION:
+2026-02-08 14:15:08 | [33mWARNING[0m | portfolio_engine.core.main_legacy |   I dati includono 3 periodi di crisi:
+2026-02-08 14:15:08 | [33mWARNING[0m | portfolio_engine.core.main_legacy |   • Q4 2018 Selloff (known_dates)
+2026-02-08 14:15:08 | [33mWARNING[0m | portfolio_engine.core.main_legacy |   • COVID Crash (known_dates)
+2026-02-08 14:15:08 | [33mWARNING[0m | portfolio_engine.core.main_legacy |   • Rate Tightening 2022 (known_dates)
+2026-02-08 14:15:08 | [33mWARNING[0m | portfolio_engine.core.main_legacy |   Max Drawdown osservato: -33.9%
+2026-02-08 14:15:08 | [32mINFO[0m | portfolio_engine.core.main_legacy |   → Monte Carlo userà scenari strutturali, non vol doubling
+2026-02-08 14:15:08 | [32mINFO[0m | portfolio_engine.core.main_legacy | COSTI TRANSAZIONE E FISCALI:
+2026-02-08 14:15:08 | [32mINFO[0m | portfolio_engine.core.main_legacy |   Rebalancing costs:     0.39%/anno
+2026-02-08 14:15:08 | [32mINFO[0m | portfolio_engine.core.main_legacy |   Tax drag (dividendi):  0.30%/anno
+2026-02-08 14:15:08 | [32mINFO[0m | portfolio_engine.core.main_legacy |   ─────────────────────────
+2026-02-08 14:15:08 | [32mINFO[0m | portfolio_engine.core.main_legacy |   TOTALE:                0.69%/anno
+2026-02-08 14:15:08 | [32mINFO[0m | portfolio_engine.core.main_legacy |   CAGR Gross → Net:      12.25% → 11.56%
+2026-02-08 14:15:08 | [32mINFO[0m | portfolio_engine.core.main_legacy | =====================================================================
+2026-02-08 14:15:08 | [32mINFO[0m | portfolio_engine.core.main_legacy |                  RISK INTENT ANALYSIS v3.0
+2026-02-08 14:15:08 | [32mINFO[0m | portfolio_engine.core.main_legacy | =====================================================================
+2026-02-08 14:15:08 | [32mINFO[0m | portfolio_engine.core.main_legacy | =====================================================================
+2026-02-08 14:15:08 | [32mINFO[0m | portfolio_engine.core.main_legacy |                  GATE SYSTEM v4.1
+2026-02-08 14:15:08 | [32mINFO[0m | portfolio_engine.core.main_legacy | =====================================================================
+2026-02-08 14:15:08 | [32mINFO[0m | portfolio_engine.core.main_legacy | SOFT CLASSIFICATION (v4.3):
+2026-02-08 14:15:08 | [32mINFO[0m | portfolio_engine.core.main_legacy |   Core Score:     28/100
+2026-02-08 14:15:08 | [32mINFO[0m | portfolio_engine.core.main_legacy |   Tactical Score: 8/100
+2026-02-08 14:15:08 | [32mINFO[0m | portfolio_engine.core.main_legacy |   Conviction:     51/100
+2026-02-08 14:15:08 | [32mINFO[0m | portfolio_engine.core.main_legacy |   Primary Type:   EQUITY_MULTI_BLOCK (confidence: 51%)
+2026-02-08 14:15:08 | [32mINFO[0m | portfolio_engine.core.main_legacy |   Alternatives:   EQUITY_MULTI_BLOCK(28%), STRUCTURED_MULTI_ASSET(14%)
+2026-02-08 14:15:08 | [32mINFO[0m | portfolio_engine.core.main_legacy |   Core Score: 28/100 | Tactical Score: 8/100
+2026-02-08 14:15:10 | [32mINFO[0m | portfolio_engine.core.main_legacy | ML structured export saved: output/data/ml_structured_export_20260208_141510.json
+2026-02-08 14:15:11 | [32mINFO[0m | portfolio_engine.core.main_legacy | Structured output saved: output/data/analysis_result.json
+2026-02-08 14:15:11 | [32mINFO[0m | portfolio_engine.core.main_legacy | Report PDF generato: /home/nic/Desktop/Developer/GitHub/analisiPortafogli/output/portfolio_analysis.pdf
+2026-02-08 14:19:10 | [32mINFO[0m | portfolio_engine.core.main_legacy | Starting portfolio analysis
+2026-02-08 14:19:10 | [32mINFO[0m | portfolio_engine.core.main_legacy | Portfolio storage: saved (hash=2229d0214a7e298d39963c347a6de3b8a0cb9c7c0e5405e4b8eb11c2130b35d6)
+2026-02-08 14:20:24 | [32mINFO[0m | portfolio_engine.core.main_legacy | Starting portfolio analysis
+2026-02-08 14:20:24 | [32mINFO[0m | portfolio_engine.core.main_legacy | Portfolio storage: saved (hash=40d78413895d86bf6ca4e905ae6456933641bce5877ad1c2a56b0336c3e3899a)
+2026-02-08 14:21:12 | [32mINFO[0m | portfolio_engine.core.main_legacy | Starting portfolio analysis
+2026-02-08 14:21:12 | [32mINFO[0m | portfolio_engine.core.main_legacy | Portfolio storage: saved (hash=629f44aad2860fa056b307471eb5bf55048e0f8010b6841b4b26f44eef05448c)
+2026-02-08 14:22:05 | [33mWARNING[0m | portfolio_engine.core.main_legacy | CRISIS DETECTION:
+2026-02-08 14:22:05 | [33mWARNING[0m | portfolio_engine.core.main_legacy |   I dati includono 5 periodi di crisi:
+2026-02-08 14:22:05 | [33mWARNING[0m | portfolio_engine.core.main_legacy |   • Euro Crisis (known_dates)
+2026-02-08 14:22:05 | [33mWARNING[0m | portfolio_engine.core.main_legacy |   • China Deval / Oil Crash (known_dates)
+2026-02-08 14:22:05 | [33mWARNING[0m | portfolio_engine.core.main_legacy |   • Q4 2018 Selloff (known_dates)
+2026-02-08 14:22:05 | [33mWARNING[0m | portfolio_engine.core.main_legacy |   Max Drawdown osservato: -27.6%
+2026-02-08 14:22:05 | [32mINFO[0m | portfolio_engine.core.main_legacy |   → Monte Carlo userà scenari strutturali, non vol doubling
+2026-02-08 14:22:06 | [32mINFO[0m | portfolio_engine.core.main_legacy | COSTI TRANSAZIONE E FISCALI:
+2026-02-08 14:22:06 | [32mINFO[0m | portfolio_engine.core.main_legacy |   Rebalancing costs:     0.43%/anno
+2026-02-08 14:22:06 | [32mINFO[0m | portfolio_engine.core.main_legacy |   Tax drag (dividendi):  0.30%/anno
+2026-02-08 14:22:06 | [32mINFO[0m | portfolio_engine.core.main_legacy |   ─────────────────────────
+2026-02-08 14:22:06 | [32mINFO[0m | portfolio_engine.core.main_legacy |   TOTALE:                0.73%/anno
+2026-02-08 14:22:06 | [32mINFO[0m | portfolio_engine.core.main_legacy |   CAGR Gross → Net:      5.34% → 4.62%
+2026-02-08 14:22:06 | [33mWARNING[0m | portfolio_engine.core.main_legacy | 🔬 WALK-FORWARD VALIDATION:
+2026-02-08 14:22:06 | [33mWARNING[0m | portfolio_engine.core.main_legacy |    Stability Score: 50/100
+2026-02-08 14:22:06 | [33mWARNING[0m | portfolio_engine.core.main_legacy |    Could not create valid train/test splits
+2026-02-08 14:22:06 | [32mINFO[0m | portfolio_engine.core.main_legacy | =====================================================================
+2026-02-08 14:22:06 | [32mINFO[0m | portfolio_engine.core.main_legacy |                  RISK INTENT ANALYSIS v3.0
+2026-02-08 14:22:06 | [32mINFO[0m | portfolio_engine.core.main_legacy | =====================================================================
+2026-02-08 14:22:06 | [32mINFO[0m | portfolio_engine.core.main_legacy | =====================================================================
+2026-02-08 14:22:06 | [32mINFO[0m | portfolio_engine.core.main_legacy |                  GATE SYSTEM v4.1
+2026-02-08 14:22:06 | [32mINFO[0m | portfolio_engine.core.main_legacy | =====================================================================
+2026-02-08 14:22:06 | [32mINFO[0m | portfolio_engine.core.main_legacy | SOFT CLASSIFICATION (v4.3):
+2026-02-08 14:22:06 | [32mINFO[0m | portfolio_engine.core.main_legacy |   Core Score:     39/100
+2026-02-08 14:22:06 | [32mINFO[0m | portfolio_engine.core.main_legacy |   Tactical Score: 8/100
+2026-02-08 14:22:06 | [32mINFO[0m | portfolio_engine.core.main_legacy |   Conviction:     61/100
+2026-02-08 14:22:06 | [32mINFO[0m | portfolio_engine.core.main_legacy |   Primary Type:   EQUITY_MULTI_BLOCK (confidence: 61%)
+2026-02-08 14:22:06 | [32mINFO[0m | portfolio_engine.core.main_legacy |   Alternatives:   EQUITY_MULTI_BLOCK(39%), STRUCTURED_MULTI_ASSET(19%)
+2026-02-08 14:22:06 | [32mINFO[0m | portfolio_engine.core.main_legacy |   Core Score: 39/100 | Tactical Score: 8/100
+2026-02-08 14:22:08 | [32mINFO[0m | portfolio_engine.core.main_legacy | ML structured export saved: output/data/ml_structured_export_20260208_142208.json
+2026-02-08 14:22:08 | [32mINFO[0m | portfolio_engine.core.main_legacy | Structured output saved: output/data/analysis_result.json
+2026-02-08 14:22:08 | [32mINFO[0m | portfolio_engine.core.main_legacy | Report PDF generato: /home/nic/Desktop/Developer/GitHub/analisiPortafogli/output/portfolio_analysis.pdf
+2026-02-08 14:36:43 | [32mINFO[0m | portfolio_engine.core.main_legacy | Starting portfolio analysis
+2026-02-08 14:36:43 | [32mINFO[0m | portfolio_engine.core.main_legacy | Portfolio storage: saved (hash=857be66896311f3f77653dbc4e79eb4d5fdf20ee0675342ba44b94c0cfe881e2)
+2026-02-08 14:37:26 | [33mWARNING[0m | portfolio_engine.core.main_legacy | CRISIS DETECTION:
+2026-02-08 14:37:26 | [33mWARNING[0m | portfolio_engine.core.main_legacy |   I dati includono 5 periodi di crisi:
+2026-02-08 14:37:26 | [33mWARNING[0m | portfolio_engine.core.main_legacy |   • Euro Crisis (known_dates)
+2026-02-08 14:37:26 | [33mWARNING[0m | portfolio_engine.core.main_legacy |   • China Deval / Oil Crash (known_dates)
+2026-02-08 14:37:26 | [33mWARNING[0m | portfolio_engine.core.main_legacy |   • Q4 2018 Selloff (known_dates)
+2026-02-08 14:37:26 | [33mWARNING[0m | portfolio_engine.core.main_legacy |   Max Drawdown osservato: -34.4%
+2026-02-08 14:37:26 | [32mINFO[0m | portfolio_engine.core.main_legacy |   → Monte Carlo userà scenari strutturali, non vol doubling
+2026-02-08 14:37:26 | [32mINFO[0m | portfolio_engine.core.main_legacy | COSTI TRANSAZIONE E FISCALI:
+2026-02-08 14:37:26 | [32mINFO[0m | portfolio_engine.core.main_legacy |   Rebalancing costs:     0.43%/anno
+2026-02-08 14:37:26 | [32mINFO[0m | portfolio_engine.core.main_legacy |   Tax drag (dividendi):  0.30%/anno
+2026-02-08 14:37:26 | [32mINFO[0m | portfolio_engine.core.main_legacy |   ─────────────────────────
+2026-02-08 14:37:26 | [32mINFO[0m | portfolio_engine.core.main_legacy |   TOTALE:                0.73%/anno
+2026-02-08 14:37:26 | [32mINFO[0m | portfolio_engine.core.main_legacy |   CAGR Gross → Net:      6.73% → 6.01%
+2026-02-08 14:37:26 | [33mWARNING[0m | portfolio_engine.core.main_legacy | 🔬 WALK-FORWARD VALIDATION:
+2026-02-08 14:37:26 | [33mWARNING[0m | portfolio_engine.core.main_legacy |    Stability Score: 50/100
+2026-02-08 14:37:26 | [33mWARNING[0m | portfolio_engine.core.main_legacy |    Could not create valid train/test splits
+2026-02-08 14:37:26 | [32mINFO[0m | portfolio_engine.core.main_legacy | =====================================================================
+2026-02-08 14:37:26 | [32mINFO[0m | portfolio_engine.core.main_legacy |                  RISK INTENT ANALYSIS v3.0
+2026-02-08 14:37:26 | [32mINFO[0m | portfolio_engine.core.main_legacy | =====================================================================
+2026-02-08 14:37:26 | [32mINFO[0m | portfolio_engine.core.main_legacy | =====================================================================
+2026-02-08 14:37:26 | [32mINFO[0m | portfolio_engine.core.main_legacy |                  GATE SYSTEM v4.1
+2026-02-08 14:37:26 | [32mINFO[0m | portfolio_engine.core.main_legacy | =====================================================================
+2026-02-08 14:37:26 | [32mINFO[0m | portfolio_engine.core.main_legacy | SOFT CLASSIFICATION (v4.3):
+2026-02-08 14:37:26 | [32mINFO[0m | portfolio_engine.core.main_legacy |   Core Score:     37/100
+2026-02-08 14:37:26 | [32mINFO[0m | portfolio_engine.core.main_legacy |   Tactical Score: 6/100
+2026-02-08 14:37:26 | [32mINFO[0m | portfolio_engine.core.main_legacy |   Conviction:     61/100
+2026-02-08 14:37:26 | [32mINFO[0m | portfolio_engine.core.main_legacy |   Primary Type:   EQUITY_MULTI_BLOCK (confidence: 61%)
+2026-02-08 14:37:26 | [32mINFO[0m | portfolio_engine.core.main_legacy |   Alternatives:   EQUITY_MULTI_BLOCK(37%), STRUCTURED_MULTI_ASSET(19%)
+2026-02-08 14:37:26 | [32mINFO[0m | portfolio_engine.core.main_legacy |   Core Score: 37/100 | Tactical Score: 6/100
+2026-02-08 14:37:29 | [32mINFO[0m | portfolio_engine.core.main_legacy | ML structured export saved: output/data/ml_structured_export_20260208_143729.json
+2026-02-08 14:37:29 | [32mINFO[0m | portfolio_engine.core.main_legacy | Structured output saved: output/data/analysis_result.json
+2026-02-08 14:37:29 | [32mINFO[0m | portfolio_engine.core.main_legacy | Report PDF generato: /home/nic/Desktop/Developer/GitHub/analisiPortafogli/output/portfolio_analysis.pdf
+2026-02-08 14:42:33 | [32mINFO[0m | portfolio_engine.core.main_legacy | Starting portfolio analysis
+2026-02-08 14:42:33 | [32mINFO[0m | portfolio_engine.core.main_legacy | Portfolio storage: saved (hash=322700808b082c1f30c9a8f9c645e0f18e3204d5dbef84af0b4c2e14401d01d6)
+2026-02-08 14:43:20 | [33mWARNING[0m | portfolio_engine.core.main_legacy | CRISIS DETECTION:
+2026-02-08 14:43:20 | [33mWARNING[0m | portfolio_engine.core.main_legacy |   I dati includono 4 periodi di crisi:
+2026-02-08 14:43:20 | [33mWARNING[0m | portfolio_engine.core.main_legacy |   • China Deval / Oil Crash (known_dates)
+2026-02-08 14:43:20 | [33mWARNING[0m | portfolio_engine.core.main_legacy |   • Q4 2018 Selloff (known_dates)
+2026-02-08 14:43:20 | [33mWARNING[0m | portfolio_engine.core.main_legacy |   • COVID Crash (known_dates)
+2026-02-08 14:43:20 | [33mWARNING[0m | portfolio_engine.core.main_legacy |   Max Drawdown osservato: -34.0%
+2026-02-08 14:43:20 | [32mINFO[0m | portfolio_engine.core.main_legacy |   → Monte Carlo userà scenari strutturali, non vol doubling
+2026-02-08 14:43:20 | [32mINFO[0m | portfolio_engine.core.main_legacy | COSTI TRANSAZIONE E FISCALI:
+2026-02-08 14:43:20 | [32mINFO[0m | portfolio_engine.core.main_legacy |   Rebalancing costs:     0.25%/anno
+2026-02-08 14:43:20 | [32mINFO[0m | portfolio_engine.core.main_legacy |   Tax drag (dividendi):  0.28%/anno
+2026-02-08 14:43:20 | [32mINFO[0m | portfolio_engine.core.main_legacy |   ─────────────────────────
+2026-02-08 14:43:20 | [32mINFO[0m | portfolio_engine.core.main_legacy |   TOTALE:                0.53%/anno
+2026-02-08 14:43:20 | [32mINFO[0m | portfolio_engine.core.main_legacy |   CAGR Gross → Net:      5.05% → 4.52%
+2026-02-08 14:43:20 | [33mWARNING[0m | portfolio_engine.core.main_legacy | 🔬 WALK-FORWARD VALIDATION:
+2026-02-08 14:43:20 | [33mWARNING[0m | portfolio_engine.core.main_legacy |    Stability Score: 50/100
+2026-02-08 14:43:20 | [33mWARNING[0m | portfolio_engine.core.main_legacy |    Could not create valid train/test splits
+2026-02-08 14:43:20 | [32mINFO[0m | portfolio_engine.core.main_legacy | =====================================================================
+2026-02-08 14:43:20 | [32mINFO[0m | portfolio_engine.core.main_legacy |                  RISK INTENT ANALYSIS v3.0
+2026-02-08 14:43:20 | [32mINFO[0m | portfolio_engine.core.main_legacy | =====================================================================
+2026-02-08 14:43:20 | [32mINFO[0m | portfolio_engine.core.main_legacy | =====================================================================
+2026-02-08 14:43:20 | [32mINFO[0m | portfolio_engine.core.main_legacy |                  GATE SYSTEM v4.1
+2026-02-08 14:43:20 | [32mINFO[0m | portfolio_engine.core.main_legacy | =====================================================================
+2026-02-08 14:43:20 | [32mINFO[0m | portfolio_engine.core.main_legacy | SOFT CLASSIFICATION (v4.3):
+2026-02-08 14:43:20 | [32mINFO[0m | portfolio_engine.core.main_legacy |   Core Score:     36/100
+2026-02-08 14:43:20 | [32mINFO[0m | portfolio_engine.core.main_legacy |   Tactical Score: 18/100
+2026-02-08 14:43:20 | [32mINFO[0m | portfolio_engine.core.main_legacy |   Conviction:     69/100
+2026-02-08 14:43:20 | [32mINFO[0m | portfolio_engine.core.main_legacy |   Primary Type:   HYBRID_CORE_TACTICAL (confidence: 69%)
+2026-02-08 14:43:20 | [32mINFO[0m | portfolio_engine.core.main_legacy |   Alternatives:   EQUITY_MULTI_BLOCK(36%), STRUCTURED_MULTI_ASSET(18%)
+2026-02-08 14:43:20 | [32mINFO[0m | portfolio_engine.core.main_legacy |   Core Score: 36/100 | Tactical Score: 18/100
+2026-02-08 14:43:22 | [32mINFO[0m | portfolio_engine.core.main_legacy | ML structured export saved: output/data/ml_structured_export_20260208_144322.json
+2026-02-08 14:43:22 | [32mINFO[0m | portfolio_engine.core.main_legacy | Structured output saved: output/data/analysis_result.json
+2026-02-08 14:43:22 | [32mINFO[0m | portfolio_engine.core.main_legacy | Report PDF generato: /home/nic/Desktop/Developer/GitHub/analisiPortafogli/output/portfolio_analysis.pdf

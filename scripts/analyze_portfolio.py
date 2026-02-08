@@ -11,6 +11,8 @@ Usage:
 """
 
 import sys
+import os
+import argparse
 from pathlib import Path
 
 # Add src to path for development
@@ -20,21 +22,37 @@ if src_path.exists():
 
 from portfolio_engine.core.main_legacy import analyze_portfolio, run_analysis_to_pdf
 from portfolio_engine.config.user_config import get_config
+from portfolio_engine.config.loader import load_config_file, build_runtime_config
 
 
 def main():
     """Run portfolio analysis with current configuration."""
+    parser = argparse.ArgumentParser(description="Run portfolio analysis")
+    parser.add_argument("--config", help="Path to JSON/YAML config file", default=None)
+    args = parser.parse_args()
+
     print("=" * 70)
     print("PORTFOLIO ANALYSIS ENGINE v2.1.0")
     print("=" * 70)
     print()
+
+    base_config = get_config()
+    config_path = args.config or os.environ.get("PORTFOLIO_CONFIG_PATH")
+    if config_path:
+        raw = load_config_file(config_path)
+        config = build_runtime_config(raw, base=base_config)
+        print(f"Using external config: {config_path}")
+    else:
+        config = base_config
     
-    config = get_config()
-    
-    # Run analysis with PDF output
+    # Run analysis with PDF output (path fixed relative to project root)
+    project_root = Path(__file__).parent.parent
+    pdf_path = project_root / "output" / "portfolio_analysis.pdf"
+    pdf_path.parent.mkdir(parents=True, exist_ok=True)
+
     run_analysis_to_pdf(
         config=config,
-        pdf_path="output/portfolio_analysis.pdf"
+        pdf_path=str(pdf_path)
     )
     
     print()

@@ -644,7 +644,9 @@ def export_all_data(
         print("\n📌 Export disabilitato. Per salvare i dati, imposta export.enabled = True")
         return None
     
-    output_dir = create_output_dir(export_config.get("output_dir", "./output"))
+    # Use data/ subfolder for exports (keep PDFs/PNGs in root output/)
+    base_output = export_config.get("output_dir", "./output")
+    output_dir = create_output_dir(f"{base_output}/data")
     formats = export_config.get("formats", [])
     timestamp = get_timestamp()
     

@@ -1,0 +1,49 @@
+{
+  "verdict": {
+    "type": "STRUCTURALLY_COHERENT_INTENT_MATCH",
+    "message": "\u2705 STRUCTURALLY COHERENT - Struttura e Intent allineati",
+    "confidence": 89
+  },
+  "portfolio": {
+    "risk_intent": "GROWTH",
+    "structure_type": "GLOBAL_CORE",
+    "composition": {
+      "VWCE.DE": 0.7000000000000001,
+      "IS3N.DE": 0.20000000000000004,
+      "IS3Q.DE": 0.10000000000000002
+    }
+  },
+  "metrics": {
+    "cagr": 0.05047240621372895,
+    "sharpe": 0.2468992657053493,
+    "sortino": 0.3466350601039733,
+    "max_drawdown": -0.37580698528534917,
+    "volatility": 0.19434058789502312,
+    "var_95": 0.30393639667601674,
+    "cvar_95": 0.4544088388364264,
+    "cagr_ci_lower": -0.044899178526135695,
+    "cagr_ci_upper": 0.16757316597797095,
+    "sharpe_ci_lower": -0.2721672826840536,
+    "sharpe_ci_upper": 0.6777357294585808,
+    "profit_factor": 1.0637565145843293,
+    "win_rate_monthly": 0.5460992907801419
+  },
+  "quality": {
+    "is_actionable": true,
+    "issues": [],
+    "score": 100
+  },
+  "recommendations": {
+    "prescriptive_actions": [],
+    "allowed_actions": [
+      "Portfolio restructuring",
+      "Asset rebalancing",
+      "Risk adjustment"
+    ],
+    "prohibited_actions": []
+  },
+  "metadata": {
+    "timestamp": "2026-02-08T14:43:22.266030",
+    "portfolio_id": null
+  }
+}

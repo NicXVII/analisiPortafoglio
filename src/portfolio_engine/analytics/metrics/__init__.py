@@ -48,6 +48,15 @@ from portfolio_engine.analytics.metrics.contribution import (
     calculate_conditional_risk_contribution,
 )
 
+# Aggregate helpers (backward-compat shim)
+from portfolio_engine.analytics.metrics.aggregate import (
+    calculate_all_metrics,
+    calculate_shrunk_correlation,
+    calculate_benchmark_comparison,
+    run_monte_carlo_stress_test,
+    calculate_conditional_correlations,
+)
+
 
 __all__ = [
     # Basic
@@ -74,4 +83,10 @@ __all__ = [
     'calculate_risk_contribution',
     'calculate_risk_contribution_correct',
     'calculate_conditional_risk_contribution',
+    # Aggregate
+    'calculate_all_metrics',
+    'calculate_shrunk_correlation',
+    'calculate_benchmark_comparison',
+    'run_monte_carlo_stress_test',
+    'calculate_conditional_correlations',
 ]

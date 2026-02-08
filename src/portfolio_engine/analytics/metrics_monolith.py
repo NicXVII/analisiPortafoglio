@@ -126,9 +126,28 @@ def run_monte_carlo_stress_test(
     Returns:
         Dict con scenari e metriche
     """
+    # Guardrail: se dati insufficienti o vuoti, salta MC
+    if returns is None or returns.empty or returns.dropna().empty:
+        return {
+            "error": "Monte Carlo skipped: empty returns",
+            "distribution": None,
+            "base": {},
+            "correlation_shift": {},
+            "structural_break": {},
+        }
+
     n_assets = len(weights)
     mean_returns = returns.mean().values
     cov_matrix = returns.cov().values
+    # Se cov contiene NaN o non è PSD, fallback skip
+    if not np.all(np.isfinite(cov_matrix)) or cov_matrix.shape[0] != cov_matrix.shape[1]:
+        return {
+            "error": "Monte Carlo skipped: invalid covariance",
+            "distribution": None,
+            "base": {},
+            "correlation_shift": {},
+            "structural_break": {},
+        }
     
     # Calcola skewness e kurtosis storiche
     portfolio_hist_returns = (returns * weights).sum(axis=1)
@@ -427,7 +446,9 @@ def calculate_all_metrics(
     equity: pd.Series,
     returns: pd.Series,
     risk_free: float = 0.02,
-    var_confidence: float = 0.95
+    var_confidence: float = 0.95,
+    var_method: str = "historical",
+    var_bootstrap_samples: int = 0,
 ) -> dict:
     """Calcola tutte le metriche del portafoglio."""
     
@@ -435,7 +456,8 @@ def calculate_all_metrics(
     
     # Performance
     total_roi = float(equity.iloc[-1] / equity.iloc[0] - 1)
-    cagr = calculate_cagr(equity, periods)
+    # Use real calendar span when available (consistent with calculate_cagr default)
+    cagr = calculate_cagr(equity, periods_per_year=None)
     volatility = calculate_annualized_volatility(returns, periods)
     
     # Risk-adjusted
@@ -451,7 +473,13 @@ def calculate_all_metrics(
     current_dd = float(dd_series.iloc[-1])
     
     # VaR e CVaR
-    var_daily, cvar_daily = calculate_var_cvar(returns, var_confidence, periods)
+    var_daily, cvar_daily = calculate_var_cvar(
+        returns,
+        var_confidence,
+        periods,
+        method=var_method,
+        bootstrap_samples=var_bootstrap_samples,
+    )
     var_annual = var_daily * np.sqrt(periods)
     cvar_annual = cvar_daily * np.sqrt(periods)
     

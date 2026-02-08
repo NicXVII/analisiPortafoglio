@@ -11,6 +11,9 @@ from datetime import datetime
 from portfolio_engine.core.main_legacy import _load_and_validate_data, _calculate_portfolio_metrics, _analyze_correlations
 from portfolio_engine.config.user_config import get_config
 
+# Mark this module as live (hits Yahoo Finance)
+pytestmark = pytest.mark.live
+
 
 class TestStage1DataLoading:
     """Test Stage 1: Data Loading & Validation"""
@@ -20,7 +23,7 @@ class TestStage1DataLoading:
         config = get_config()
         
         # Execute
-        prices, benchmark_prices, data_integrity, is_provisional, risk_intent = \
+        prices, benchmark_prices, data_integrity, is_provisional, risk_intent, data_quality = \
             _load_and_validate_data(config)
         
         # Assertions
@@ -32,12 +35,13 @@ class TestStage1DataLoading:
         assert isinstance(risk_intent, str), "risk_intent should be string"
         assert risk_intent in ['CONSERVATIVE', 'MODERATE', 'GROWTH', 'AGGRESSIVE'], \
             "risk_intent should be valid value"
+        assert isinstance(data_quality, dict), "data_quality should be dict"
     
     def test_data_integrity_policy(self):
         """Test that data integrity policy is set correctly."""
         config = get_config()
         
-        prices, benchmark_prices, data_integrity, is_provisional, risk_intent = \
+        prices, benchmark_prices, data_integrity, is_provisional, risk_intent, _ = \
             _load_and_validate_data(config)
         
         assert 'policy' in data_integrity, "policy should be in data_integrity"
@@ -48,17 +52,22 @@ class TestStage1DataLoading:
         """Test that all tickers are present in loaded data."""
         config = get_config()
         
-        prices, benchmark_prices, data_integrity, is_provisional, risk_intent = \
+        prices, benchmark_prices, data_integrity, is_provisional, risk_intent, _ = \
             _load_and_validate_data(config)
         
-        for ticker in config['tickers']:
+        tickers_used = data_integrity.get("tickers_used", config["tickers"])
+        for ticker in tickers_used:
             assert ticker in prices.columns, f"Ticker {ticker} should be in prices"
+        dropped = data_integrity.get("dropped_tickers", [])
+        for ticker in config["tickers"]:
+            if ticker not in prices.columns:
+                assert ticker in dropped, f"Ticker {ticker} missing but not flagged as dropped"
     
     def test_benchmark_tickers_loaded(self):
         """Test that benchmark tickers are loaded."""
         config = get_config()
         
-        prices, benchmark_prices, data_integrity, is_provisional, risk_intent = \
+        prices, benchmark_prices, data_integrity, is_provisional, risk_intent, _ = \
             _load_and_validate_data(config)
         
         # At least one benchmark should be loaded
@@ -78,11 +87,11 @@ class TestStage2MetricsCalculation:
         config = get_config()
         
         # Load data first
-        prices, _, data_integrity, _, _ = _load_and_validate_data(config)
+        prices, _, data_integrity, _, _, _ = _load_and_validate_data(config)
         
         # Prepare inputs
-        tickers = config['tickers']
-        weights = np.array(config['weights'], dtype=float)
+        tickers = data_integrity.get("tickers_used", config["tickers"])
+        weights = np.array(data_integrity.get("weights_used", config["weights"]), dtype=float)
         weights = weights / weights.sum()
         
         # Execute
@@ -106,10 +115,10 @@ class TestStage2MetricsCalculation:
     def test_metrics_keys_present(self):
         """Test that all expected metric keys are present."""
         config = get_config()
-        prices, _, data_integrity, _, _ = _load_and_validate_data(config)
+        prices, _, data_integrity, _, _, _ = _load_and_validate_data(config)
         
-        tickers = config['tickers']
-        weights = np.array(config['weights'], dtype=float)
+        tickers = data_integrity.get("tickers_used", config["tickers"])
+        weights = np.array(data_integrity.get("weights_used", config["weights"]), dtype=float)
         weights = weights / weights.sum()
         
         equity, port_ret, metrics, asset_df, risk_contrib, conditional_ccr = \
@@ -129,10 +138,10 @@ class TestStage2MetricsCalculation:
     def test_asset_df_structure(self):
         """Test that asset_df has correct structure."""
         config = get_config()
-        prices, _, data_integrity, _, _ = _load_and_validate_data(config)
+        prices, _, data_integrity, _, _, _ = _load_and_validate_data(config)
         
-        tickers = config['tickers']
-        weights = np.array(config['weights'], dtype=float)
+        tickers = data_integrity.get("tickers_used", config["tickers"])
+        weights = np.array(data_integrity.get("weights_used", config["weights"]), dtype=float)
         weights = weights / weights.sum()
         
         equity, port_ret, metrics, asset_df, risk_contrib, conditional_ccr = \
@@ -160,7 +169,7 @@ class TestStage3CorrelationAnalysis:
     def test_analyze_correlations_basic(self):
         """Test basic correlation analysis."""
         config = get_config()
-        prices, _, _, _, _ = _load_and_validate_data(config)
+        prices, _, _, _, _, _ = _load_and_validate_data(config)
         
         # Execute
         corr, corr_raw, shrinkage_delta, dual_corr, simple_ret = \
@@ -175,7 +184,7 @@ class TestStage3CorrelationAnalysis:
     def test_correlation_matrix_shape(self):
         """Test that correlation matrices have correct shape."""
         config = get_config()
-        prices, _, _, _, _ = _load_and_validate_data(config)
+        prices, _, _, _, _, _ = _load_and_validate_data(config)
         
         corr, corr_raw, shrinkage_delta, dual_corr, simple_ret = \
             _analyze_correlations(prices)
@@ -187,7 +196,7 @@ class TestStage3CorrelationAnalysis:
     def test_correlation_values_valid(self):
         """Test that correlation values are in valid range [-1, 1]."""
         config = get_config()
-        prices, _, _, _, _ = _load_and_validate_data(config)
+        prices, _, _, _, _, _ = _load_and_validate_data(config)
         
         corr, corr_raw, shrinkage_delta, dual_corr, simple_ret = \
             _analyze_correlations(prices)
@@ -203,7 +212,7 @@ class TestStage3CorrelationAnalysis:
     def test_simple_returns_calculated(self):
         """Test that simple returns are calculated correctly."""
         config = get_config()
-        prices, _, _, _, _ = _load_and_validate_data(config)
+        prices, _, _, _, _, _ = _load_and_validate_data(config)
         
         corr, corr_raw, shrinkage_delta, dual_corr, simple_ret = \
             _analyze_correlations(prices)
@@ -227,12 +236,12 @@ class TestIntegration:
         config = get_config()
         
         # Stage 1
-        prices, benchmark_prices, data_integrity, is_provisional, risk_intent = \
+        prices, benchmark_prices, data_integrity, is_provisional, risk_intent, _ = \
             _load_and_validate_data(config)
         
         # Stage 2
-        tickers = config['tickers']
-        weights = np.array(config['weights'], dtype=float)
+        tickers = data_integrity.get("tickers_used", config["tickers"])
+        weights = np.array(data_integrity.get("weights_used", config["weights"]), dtype=float)
         weights = weights / weights.sum()
         
         equity, port_ret, metrics, asset_df, risk_contrib, conditional_ccr = \

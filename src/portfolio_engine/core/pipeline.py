@@ -30,8 +30,9 @@ from portfolio_engine.models.portfolio import (
     PrescriptiveAction,
     PortfolioStructureType
 )
+from portfolio_engine.decision.gate_system import GateAnalysisResult
 
-from portfolio_engine.analytics.metrics_monolith import (
+from portfolio_engine.analytics.metrics import (
     calculate_simple_returns,
     calculate_cagr_correct,
     calculate_annualized_volatility,
@@ -46,7 +47,10 @@ from portfolio_engine.data.loader import (
     calculate_start_date,
     simulate_portfolio_correct,
     check_survivorship_bias_warning,
-    validate_data_integrity
+    validate_data_integrity,
+    get_currency_map,
+    convert_to_base_currency,
+    check_staleness,
 )
 
 from portfolio_engine.decision.risk_intent import (
@@ -91,14 +95,16 @@ def _build_structured_result(
         AnalysisResult: Structured, machine-readable result
     """
     # Extract metrics snapshot
+    # NOTE (Fix O1): metrics dict espone solo varianti annualizzate.
+    # Mappiamo i campi snapshot sulle chiavi corrette per evitare var_95/cvar_95 a 0.0.
     metrics_snapshot = MetricsSnapshot(
         cagr=metrics.get('cagr', 0.0),
         sharpe=metrics.get('sharpe', 0.0),
         sortino=metrics.get('sortino', 0.0),
         max_drawdown=metrics.get('max_drawdown', 0.0),
         volatility=metrics.get('volatility', 0.0),
-        var_95=metrics.get('var_95', 0.0),
-        cvar_95=metrics.get('cvar_95', 0.0),
+        var_95=metrics.get('var_95_annual', metrics.get('var_95', 0.0)),
+        cvar_95=metrics.get('cvar_95_annual', metrics.get('cvar_95', 0.0)),
         cagr_ci_lower=metrics.get('cagr_ci', {}).get('ci_lower') if metrics.get('cagr_ci') else None,
         cagr_ci_upper=metrics.get('cagr_ci', {}).get('ci_upper') if metrics.get('cagr_ci') else None,
         sharpe_ci_lower=metrics.get('sharpe_ci', {}).get('ci_lower') if metrics.get('sharpe_ci') else None,
@@ -107,23 +113,43 @@ def _build_structured_result(
         profit_factor=metrics.get('profit_factor'),
         win_rate_monthly=metrics.get('win_rate_monthly')
     )
-    
+
     # Extract prescriptive actions
-    prescriptive_actions = []
-    for action in gate_result.prescriptive_actions:
-        if isinstance(action, PrescriptiveAction):
-            prescriptive_actions.append(action)
-        elif isinstance(action, dict):
-            # Convert dict to PrescriptiveAction
-            prescriptive_actions.append(PrescriptiveAction(
-                issue_code=action.get('issue_code', 'UNKNOWN'),
-                priority=action.get('priority', 'MEDIUM'),
-                confidence=action.get('confidence', 0.5),
-                description=action.get('description', ''),
-                actions=action.get('actions', []),
-                blockers=action.get('blockers', []),
-                data_quality_impact=action.get('data_quality_impact', 'NONE')
-            ))
+    prescriptive_actions: List[PrescriptiveAction] = []
+    seen_keys = set()
+
+    def _add_action(raw_action: Any):
+        """Normalizza e deduplica le prescriptive actions (Fix O2)."""
+        if raw_action is None:
+            return
+        if isinstance(raw_action, PrescriptiveAction):
+            action_obj = raw_action
+        elif isinstance(raw_action, dict):
+            action_obj = PrescriptiveAction(
+                issue_code=raw_action.get('issue_code', 'UNKNOWN'),
+                priority=raw_action.get('priority', 'MEDIUM'),
+                confidence=raw_action.get('confidence', 0.5),
+                description=raw_action.get('description', ''),
+                actions=raw_action.get('actions', []),
+                blockers=raw_action.get('blockers', []),
+                data_quality_impact=raw_action.get('data_quality_impact', 'NONE')
+            )
+        else:
+            return
+
+        key = (action_obj.issue_code, action_obj.description)
+        if key not in seen_keys:
+            seen_keys.add(key)
+            prescriptive_actions.append(action_obj)
+
+    for action in getattr(gate_result, 'prescriptive_actions', []):
+        _add_action(action)
+
+    # Integra eventuali azioni provenienti dall'analisi di intent/risk (se presenti)
+    for action in risk_analysis.get('prescriptive_actions', []):
+        _add_action(action)
+
+    logger.debug("Prescriptive actions collected: %d", len(prescriptive_actions))
     
     # Determine structure type
     structure_type = gate_result.structure_type if hasattr(gate_result, 'structure_type') else PortfolioStructureType.GLOBAL_CORE
@@ -345,7 +371,7 @@ def _prepare_benchmark_metrics(
 # =========================
 
 @log_performance(logger)
-def _load_and_validate_data(config: Dict[str, Any]) -> Tuple[pd.DataFrame, pd.DataFrame, Dict, bool, str]:
+def _load_and_validate_data(config: Dict[str, Any]) -> Tuple[pd.DataFrame, pd.DataFrame, Dict, bool, str, Dict]:
     """
     Stage 1: Load and validate portfolio and benchmark data.
     
@@ -376,6 +402,7 @@ def _load_and_validate_data(config: Dict[str, Any]) -> Tuple[pd.DataFrame, pd.Da
     years = config.get("years_history", 5)
     end = config["end_date"]
     start = config["start_date"] or calculate_start_date(years, end)
+    start_dt = datetime.strptime(start, "%Y-%m-%d") if isinstance(start, str) else start
     risk_intent = config.get("risk_intent", "GROWTH")
     
     # === RISK INTENT VALIDATION ===
@@ -398,12 +425,48 @@ def _load_and_validate_data(config: Dict[str, Any]) -> Tuple[pd.DataFrame, pd.Da
     # === DOWNLOAD DATI ===
     logger.info(f"Downloading data for {len(tickers)} tickers...")
     prices = download_data(tickers, start, end)
+
+    # FX conversion to base currency (if multiple currencies)
+    fx_config = config.get("fx", {})
+    base_ccy = fx_config.get("base_currency", "USD")
+    currency_map = get_currency_map(tickers)
+    prices, fx_info = convert_to_base_currency(
+        prices,
+        currency_map,
+        base_currency=base_ccy,
+        manual_rates=fx_config.get("manual_rates", {}),
+        warn_on_missing=fx_config.get("warn_on_missing", True),
+        return_info=True,
+    )
+
+    # Staleness check
+    staleness_msg = check_staleness(prices, limit_days=fx_config.get("stale_days_warning", 3))
+    is_provisional = False
+    if staleness_msg:
+        logger.warning(f"DATA STALENESS: {staleness_msg}")
+        is_provisional = True
+    if fx_info.get("missing") or fx_info.get("skipped"):
+        is_provisional = True
     
     # === DOWNLOAD BENCHMARK ===
     logger.info("Downloading benchmark data (VT, SPY, BND)...")
     benchmark_tickers = ['VT', 'SPY', 'BND']
     bench_to_download = [t for t in benchmark_tickers if t not in tickers]
     benchmark_prices = download_data(bench_to_download, start, end) if bench_to_download else pd.DataFrame()
+
+    # Convert benchmark to base currency too
+    if not benchmark_prices.empty:
+        bench_currency_map = get_currency_map(list(benchmark_prices.columns))
+        benchmark_prices, bench_fx_info = convert_to_base_currency(
+            benchmark_prices,
+            bench_currency_map,
+            base_currency=base_ccy,
+            manual_rates=fx_config.get("manual_rates", {}),
+            warn_on_missing=fx_config.get("warn_on_missing", True),
+            return_info=True,
+        )
+    else:
+        bench_fx_info = {"missing": [], "converted": [], "skipped": []}
     
     # Merge con quelli già scaricati
     for t in benchmark_tickers:
@@ -419,8 +482,23 @@ def _load_and_validate_data(config: Dict[str, Any]) -> Tuple[pd.DataFrame, pd.Da
         raise RuntimeError(f"Mancano dati per: {missing}")
     
     empty_cols = [c for c in prices.columns if prices[c].isna().all()]
+    dropped_tickers: list[str] = []
+    weights_used = weights.copy()
     if empty_cols:
-        raise RuntimeError(f"Ticker vuoti: {empty_cols}")
+        dropped_tickers = [t for t in empty_cols if t in tickers]
+        if dropped_tickers:
+            logger.warning(f"Ticker vuoti (drop): {dropped_tickers}")
+            keep_mask = [t not in dropped_tickers for t in tickers]
+            if not any(keep_mask):
+                raise RuntimeError(f"Tutti i ticker sono vuoti: {dropped_tickers}")
+            # Drop from prices and adjust tickers/weights
+            prices = prices.drop(columns=dropped_tickers, errors="ignore")
+            tickers = [t for t in tickers if t not in dropped_tickers]
+            weights_used = np.array(weights)[keep_mask]
+            weights_used = weights_used / weights_used.sum()
+            is_provisional = True
+        else:
+            raise RuntimeError(f"Ticker vuoti: {empty_cols}")
     
     # === DATA INTEGRITY LAYER ===
     prices, data_integrity = validate_data_integrity(prices, tickers)
@@ -437,6 +515,15 @@ def _load_and_validate_data(config: Dict[str, Any]) -> Tuple[pd.DataFrame, pd.Da
     
     for warning in data_integrity.get('warnings', []):
         logger.warning(f"  {warning}")
+
+    if dropped_tickers:
+        data_integrity["dropped_tickers"] = dropped_tickers
+        data_integrity["tickers_used"] = tickers
+        data_integrity["weights_used"] = weights_used.tolist()
+        data_integrity["warnings"].append(
+            f"⚠️ Ticker rimossi per dati vuoti: {dropped_tickers}. "
+            "Pesi rinormalizzati sui ticker rimanenti."
+        )
     
     # === DATA QUALITY GATE ===
     is_provisional = False
@@ -462,11 +549,25 @@ def _load_and_validate_data(config: Dict[str, Any]) -> Tuple[pd.DataFrame, pd.Da
     data_integrity['is_provisional'] = is_provisional
     
     # === SURVIVORSHIP BIAS CHECK ===
-    surv_bias = check_survivorship_bias_warning(tickers)
+    simple_returns_preview = prices.pct_change().dropna()
+    surv_bias = check_survivorship_bias_warning(
+        tickers=tickers,
+        returns=simple_returns_preview,
+        start_date=start_dt
+    )
     if surv_bias['warning_level'] != 'LOW':
         logger.warning(f"{surv_bias['message']}")
+    data_integrity['survivorship'] = surv_bias
     
-    return prices, benchmark_prices, data_integrity, is_provisional, risk_intent
+    # Data quality bundle
+    data_quality = {
+        "staleness": staleness_msg,
+        "fx": fx_info,
+        "benchmark_fx": bench_fx_info,
+        "survivorship": surv_bias,
+    }
+    
+    return prices, benchmark_prices, data_integrity, is_provisional, risk_intent, data_quality
 
 
 # =========================
@@ -481,7 +582,11 @@ def _calculate_portfolio_metrics(
     rebalance: str,
     risk_free: float,
     var_conf: float,
-    data_integrity: Dict
+    data_integrity: Dict,
+    fees_config: Dict | None = None,
+    bias_config: Dict | None = None,
+    var_method: str = "historical",
+    var_bootstrap_samples: int = 0,
 ) -> Tuple[pd.Series, pd.Series, Dict, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """
     Stage 2: Calculate portfolio and asset-level metrics.
@@ -506,9 +611,50 @@ def _calculate_portfolio_metrics(
     # Simulazione portafoglio
     use_staggered = (data_integrity.get('policy') == 'STAGGERED_ENTRY')
     equity, port_ret = simulate_portfolio_correct(prices, weights, rebalance, staggered_entry=use_staggered)
+
+    # Applica costi/fee annuali (bps) se configurati
+    fees_config = fees_config or {}
+    fee_bps = float(fees_config.get("annual_fee_bps", 0.0))
+    if fee_bps > 0:
+        daily_fee = (fee_bps / 10000.0) / 252.0
+        port_ret = port_ret - daily_fee
+        equity = (1 + port_ret).cumprod()
     
     # Calcolo metriche portfolio
-    metrics = calculate_all_metrics(equity, port_ret, risk_free, var_conf)
+    metrics = calculate_all_metrics(
+        equity,
+        port_ret,
+        risk_free,
+        var_conf,
+        var_method=var_method,
+        var_bootstrap_samples=var_bootstrap_samples,
+    )
+
+    # Applicazione haircut per survivorship bias (se configurato)
+    survivorship = data_integrity.get("survivorship")
+    bias_config = bias_config or {}
+    if bias_config.get("apply_survivorship_haircut", False) and survivorship:
+        conf = float(survivorship.get("confidence_score", 0.85))
+        max_penalty = float(bias_config.get("max_annual_penalty", 0.03))
+        # scala lineare: se conf ≤0.30 → penalità massima; conf ≥0.85 → zero
+        factor = max(0.0, min(1.0, (0.85 - conf) / (0.85 - 0.30)))
+        annual_penalty = max_penalty * factor
+        if annual_penalty > 0:
+            daily_penalty = annual_penalty / 252.0
+            port_ret_adj = port_ret - daily_penalty
+            equity_adj = (1 + port_ret_adj).cumprod()
+            metrics = calculate_all_metrics(
+                equity_adj,
+                port_ret_adj,
+                risk_free,
+                var_conf,
+                var_method=var_method,
+                var_bootstrap_samples=var_bootstrap_samples,
+            )
+            metrics["survivorship_penalty_applied"] = annual_penalty
+            metrics["survivorship_confidence"] = conf
+            port_ret = port_ret_adj
+            equity = equity_adj
     
     # Metriche per asset
     simple_ret = calculate_simple_returns(prices)

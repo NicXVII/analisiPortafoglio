@@ -1,0 +1,975 @@
+{
+  "metadata": {
+    "export_timestamp": "2026-01-30T09:55:46.387402",
+    "version": "3.1",
+    "purpose": "ML_INGESTION_QUANT_ANALYSIS"
+  },
+  "metrics_flat": {
+    "cagr": 0.1625081485587374,
+    "volatility": 0.1885571302129227,
+    "sharpe": 0.7880771673463666,
+    "sortino": 1.137273790769553,
+    "calmar": 0.48106183562161947,
+    "max_drawdown": -0.3378113509020047,
+    "avg_drawdown": -0.05963400156323374,
+    "current_drawdown": -0.03273073129852955,
+    "beta": 0.0,
+    "var_95_daily": -0.0188230574619322,
+    "cvar_95_daily": -0.0273678493184982,
+    "profit_factor": 1.1719021009268356,
+    "gain_loss_ratio": 0.9400650408937303,
+    "win_rate_daily": 0.0,
+    "win_rate_monthly": 0.6292682926829268
+  },
+  "confidence_intervals": {
+    "cagr": {
+      "lower": 0.09046980272162498,
+      "upper": 0.2745324401611211,
+      "se": 0.0514945474351398
+    },
+    "sharpe": {
+      "lower": 0.36152973108551767,
+      "upper": 1.2989775748351446,
+      "se": 0.2369864930365816
+    },
+    "max_dd": {
+      "lower": -0.536211472888106,
+      "upper": -0.222534632062814
+    }
+  },
+  "risk_contribution": {
+    "CNDX.L": {
+      "weight": 0.25,
+      "mcr": 0.1680989806054916,
+      "ccr": 0.0420247451513729,
+      "ccr_pct": 0.2470154768056556,
+      "risk_leverage": 0.9880619072226224
+    },
+    "SEMI.L": {
+      "weight": 0.15,
+      "mcr": 0.1068990762083076,
+      "ccr": 0.01603486143124614,
+      "ccr_pct": 0.09425063561206357,
+      "risk_leverage": 0.6283375707470905
+    },
+    "EMIM.L": {
+      "weight": 0.15,
+      "mcr": 0.1690663257450148,
+      "ccr": 0.02535994886175222,
+      "ccr_pct": 0.14906217366194116,
+      "risk_leverage": 0.9937478244129411
+    },
+    "ITWN.L": {
+      "weight": 0.08,
+      "mcr": 0.07778388861012328,
+      "ccr": 0.006222711088809863,
+      "ccr_pct": 0.03657621101780775,
+      "risk_leverage": 0.4572026377225969
+    },
+    "NDIA.L": {
+      "weight": 0.07,
+      "mcr": 0.21671414711667203,
+      "ccr": 0.015169990298167043,
+      "ccr_pct": 0.0891670460615865,
+      "risk_leverage": 1.27381494373695
+    },
+    "RBOT.L": {
+      "weight": 0.1,
+      "mcr": 0.18954769449543515,
+      "ccr": 0.018954769449543517,
+      "ccr_pct": 0.11141343978304426,
+      "risk_leverage": 1.1141343978304425
+    },
+    "NUKL.DE": {
+      "weight": 0.1,
+      "mcr": 0.25193029533902517,
+      "ccr": 0.025193029533902518,
+      "ccr_pct": 0.1480810455858908,
+      "risk_leverage": 1.480810455858908
+    },
+    "WCLD.L": {
+      "weight": 0.1,
+      "mcr": 0.21169952615554982,
+      "ccr": 0.021169952615554984,
+      "ccr_pct": 0.12443397147201057,
+      "risk_leverage": 1.2443397147201056
+    }
+  },
+  "correlations": {
+    "regularized": {
+      "CNDX.L": {
+        "CNDX.L": 1.0,
+        "EMIM.L": 0.009694486531148384,
+        "ITWN.L": 0.010792288258457353,
+        "NDIA.L": 0.00661805002255197,
+        "NUKL.DE": 0.008026294222101545,
+        "RBOT.L": 0.014218557789734115,
+        "SEMI.L": 0.01190697299704657,
+        "WCLD.L": 0.011608750110811332
+      },
+      "EMIM.L": {
+        "CNDX.L": 0.009694486531148384,
+        "EMIM.L": 1.0,
+        "ITWN.L": 0.011937419910802025,
+        "NDIA.L": 0.008279348441867793,
+        "NUKL.DE": 0.007777489285838261,
+        "RBOT.L": 0.010285444593132674,
+        "SEMI.L": 0.00968704043069457,
+        "WCLD.L": 0.007275232299386178
+      },
+      "ITWN.L": {
+        "CNDX.L": 0.010792288258457353,
+        "EMIM.L": 0.011937419910802025,
+        "ITWN.L": 1.0,
+        "NDIA.L": 0.0059042555821775585,
+        "NUKL.DE": 0.007727126377373033,
+        "RBOT.L": 0.01069071491749739,
+        "SEMI.L": 0.010966303177948014,
+        "WCLD.L": 0.007064349514852029
+      },
+      "NDIA.L": {
+        "CNDX.L": 0.00661805002255197,
+        "EMIM.L": 0.008279348441867793,
+        "ITWN.L": 0.0059042555821775585,
+        "NDIA.L": 1.0,
+        "NUKL.DE": 0.004440148434811006,
+        "RBOT.L": 0.0072691894457198435,
+        "SEMI.L": 0.005196305670793941,
+        "WCLD.L": 0.005192933030263906
+      },
+      "NUKL.DE": {
+        "CNDX.L": 0.008026294222101545,
+        "EMIM.L": 0.007777489285838261,
+        "ITWN.L": 0.007727126377373033,
+        "NDIA.L": 0.004440148434811006,
+        "NUKL.DE": 1.0,
+        "RBOT.L": 0.008541548044117974,
+        "SEMI.L": 0.007628060980320363,
+        "WCLD.L": 0.005883710003214009
+      },
+      "RBOT.L": {
+        "CNDX.L": 0.014218557789734115,
+        "EMIM.L": 0.010285444593132674,
+        "ITWN.L": 0.01069071491749739,
+        "NDIA.L": 0.0072691894457198435,
+        "NUKL.DE": 0.008541548044117974,
+        "RBOT.L": 1.0,
+        "SEMI.L": 0.011621267244459634,
+        "WCLD.L": 0.01281969670375361
+      },
+      "SEMI.L": {
+        "CNDX.L": 0.01190697299704657,
+        "EMIM.L": 0.00968704043069457,
+        "ITWN.L": 0.010966303177948014,
+        "NDIA.L": 0.005196305670793941,
+        "NUKL.DE": 0.007628060980320363,
+        "RBOT.L": 0.011621267244459634,
+        "SEMI.L": 1.0,
+        "WCLD.L": 0.007624013024222091
+      },
+      "WCLD.L": {
+        "CNDX.L": 0.011608750110811332,
+        "EMIM.L": 0.007275232299386178,
+        "ITWN.L": 0.007064349514852029,
+        "NDIA.L": 0.005192933030263906,
+        "NUKL.DE": 0.005883710003214009,
+        "RBOT.L": 0.01281969670375361,
+        "SEMI.L": 0.007624013024222091,
+        "WCLD.L": 1.0
+      }
+    },
+    "raw": {
+      "CNDX.L": {
+        "CNDX.L": 1.0,
+        "EMIM.L": 0.6091809802522677,
+        "ITWN.L": 0.6781645133373863,
+        "NDIA.L": 0.4158642324318315,
+        "NUKL.DE": 0.5043553123007679,
+        "RBOT.L": 0.8934640266190256,
+        "SEMI.L": 0.7482089390575367,
+        "WCLD.L": 0.7294692451514456
+      },
+      "EMIM.L": {
+        "CNDX.L": 0.6091809802522677,
+        "EMIM.L": 1.0,
+        "ITWN.L": 0.7501221585671631,
+        "NDIA.L": 0.5202567029684297,
+        "NUKL.DE": 0.4887209375994896,
+        "RBOT.L": 0.6463155319720405,
+        "SEMI.L": 0.6087130830862922,
+        "WCLD.L": 0.45716017341024
+      },
+      "ITWN.L": {
+        "CNDX.L": 0.6781645133373863,
+        "EMIM.L": 0.7501221585671631,
+        "ITWN.L": 1.0,
+        "NDIA.L": 0.3710109031204962,
+        "NUKL.DE": 0.4855562392063743,
+        "RBOT.L": 0.6717818599379844,
+        "SEMI.L": 0.6890992419476372,
+        "WCLD.L": 0.44390874632453725
+      },
+      "NDIA.L": {
+        "CNDX.L": 0.4158642324318315,
+        "EMIM.L": 0.5202567029684297,
+        "ITWN.L": 0.3710109031204962,
+        "NDIA.L": 1.0,
+        "NUKL.DE": 0.2790095140462618,
+        "RBOT.L": 0.4567804532973541,
+        "SEMI.L": 0.3265248316199058,
+        "WCLD.L": 0.32631290203936286
+      },
+      "NUKL.DE": {
+        "CNDX.L": 0.5043553123007679,
+        "EMIM.L": 0.4887209375994896,
+        "ITWN.L": 0.4855562392063743,
+        "NDIA.L": 0.2790095140462618,
+        "NUKL.DE": 1.0,
+        "RBOT.L": 0.536732770082177,
+        "SEMI.L": 0.4793311796849932,
+        "WCLD.L": 0.3697198624972872
+      },
+      "RBOT.L": {
+        "CNDX.L": 0.8934640266190256,
+        "EMIM.L": 0.6463155319720405,
+        "ITWN.L": 0.6717818599379844,
+        "NDIA.L": 0.4567804532973541,
+        "NUKL.DE": 0.536732770082177,
+        "RBOT.L": 1.0,
+        "SEMI.L": 0.7302557952922212,
+        "WCLD.L": 0.8055625617135489
+      },
+      "SEMI.L": {
+        "CNDX.L": 0.7482089390575367,
+        "EMIM.L": 0.6087130830862922,
+        "ITWN.L": 0.6890992419476372,
+        "NDIA.L": 0.3265248316199058,
+        "NUKL.DE": 0.4793311796849932,
+        "RBOT.L": 0.7302557952922212,
+        "SEMI.L": 1.0,
+        "WCLD.L": 0.4790768147058847
+      },
+      "WCLD.L": {
+        "CNDX.L": 0.7294692451514456,
+        "EMIM.L": 0.45716017341024,
+        "ITWN.L": 0.44390874632453725,
+        "NDIA.L": 0.32631290203936286,
+        "NUKL.DE": 0.3697198624972872,
+        "RBOT.L": 0.8055625617135489,
+        "SEMI.L": 0.4790768147058847,
+        "WCLD.L": 1.0
+      }
+    },
+    "avg_correlation_reg": 0.008809892751610612,
+    "avg_correlation_raw": 0.5535949825810694
+  },
+  "assets": {
+    "CNDX.L": {
+      "Weight": 0.25,
+      "CAGR": 0.23467381565997836,
+      "Vol": 0.18203711369837663,
+      "RiskContrib%": 0.2470154768056556
+    },
+    "SEMI.L": {
+      "Weight": 0.15,
+      "CAGR": 0.19549316565974384,
+      "Vol": 0.30279276218970486,
+      "RiskContrib%": 0.09425063561206357
+    },
+    "EMIM.L": {
+      "Weight": 0.15,
+      "CAGR": 0.1033603827563121,
+      "Vol": 0.13625589027043528,
+      "RiskContrib%": 0.14906217366194116
+    },
+    "ITWN.L": {
+      "Weight": 0.08,
+      "CAGR": 0.13065957385715965,
+      "Vol": 0.20556479716574935,
+      "RiskContrib%": 0.03657621101780775
+    },
+    "NDIA.L": {
+      "Weight": 0.07,
+      "CAGR": 0.10201938005905409,
+      "Vol": 0.15045107858151333,
+      "RiskContrib%": 0.0891670460615865
+    },
+    "RBOT.L": {
+      "Weight": 0.1,
+      "CAGR": 0.12426078811923635,
+      "Vol": 0.204304646868103,
+      "RiskContrib%": 0.11141343978304426
+    },
+    "NUKL.DE": {
+      "Weight": 0.1,
+      "CAGR": 0.28869754301651973,
+      "Vol": 0.33361709705484927,
+      "RiskContrib%": 0.1480810455858908
+    },
+    "WCLD.L": {
+      "Weight": 0.1,
+      "CAGR": 0.004904097769649507,
+      "Vol": 0.28157198687069535,
+      "RiskContrib%": 0.12443397147201057
+    }
+  },
+  "verdict": {
+    "type": "INTENT_MISALIGNED_STRUCTURE_OK",
+    "confidence": 60,
+    "message": "\u26a0\ufe0f INTENT WARNING - Struttura OK, beta sotto target",
+    "action": "Review portfolio configuration"
+  },
+  "regime": {
+    "regime": "EQUITY_CORE_DRIVEN",
+    "portfolio_type": "EQUITY_GROWTH_DIVERSIFIED",
+    "confidence": 0.85,
+    "thresholds": {
+      "max_single_position": 0.45,
+      "max_top3": 0.7,
+      "max_satellite_single": 0.15,
+      "max_satellite_total": 0.4,
+      "max_correlation_satellite": 0.75,
+      "max_drawdown": -0.55,
+      "min_sharpe": 0.2,
+      "min_sortino": 0.4,
+      "min_calmar": 0.25,
+      "core_risk_contrib_ratio_max": 1.8,
+      "primary_metrics": [
+        "cagr",
+        "sortino"
+      ],
+      "secondary_metrics": [
+        "sharpe",
+        "max_drawdown"
+      ],
+      "description": "Equity Growth Diversified - multi-core regionale",
+      "regime_adjusted": true,
+      "regime_note": "Soglie adattate per crisi sistemica"
+    },
+    "composition": {
+      "core_global": 0.0,
+      "core_regional": 0.0,
+      "emerging_broad": 0.15,
+      "em_single_country": 0.07,
+      "total_emerging": 0.22,
+      "total_core": 0.0,
+      "small_cap": 0.0,
+      "reit": 0.0,
+      "factor": 0.0,
+      "sector": 0.0,
+      "structural_noncore": 0.0,
+      "thematic_pure": 0.35,
+      "true_satellite": 0.35,
+      "bond": 0.0,
+      "gold_commodity": 0.0,
+      "dividend_income": 0.0,
+      "other_equity": 0.43000000000000005,
+      "total_equity": 1.0,
+      "total_defensive": 0.0,
+      "total_allocated": 1.0
+    },
+    "core_tickers": [],
+    "satellite_tickers": [
+      "SEMI.L",
+      "NUKL.DE",
+      "WCLD.L"
+    ],
+    "type_reason": "Global core + 8 regional tilts (con overlap), max position 25%",
+    "details": {
+      "core_global_tickers": [],
+      "core_regional_tickers": [],
+      "small_cap_tickers": [],
+      "reit_tickers": [],
+      "factor_tickers": [],
+      "sector_tickers": [],
+      "thematic_pure_tickers": [
+        "SEMI.L",
+        "NUKL.DE",
+        "WCLD.L"
+      ],
+      "em_broad_tickers": [
+        "EMIM.L"
+      ],
+      "em_single_country_tickers": [
+        "NDIA.L"
+      ],
+      "bond_tickers": [],
+      "gold_commodity_tickers": [],
+      "income_tickers": [],
+      "other_tickers": [
+        "CNDX.L",
+        "ITWN.L",
+        "RBOT.L"
+      ],
+      "n_positions": 8,
+      "max_position": 0.25,
+      "max_ticker": "CNDX.L"
+    },
+    "market_regime": {
+      "primary_regime": "INCLUDES_SYSTEMIC_CRISIS",
+      "crisis_periods": [
+        {
+          "name": "GFC",
+          "start": "2007-10-09",
+          "end": "2009-03-09",
+          "type": "SYSTEMIC_CRISIS",
+          "max_dd_typical": -0.57,
+          "trigger": "Post-hoc: S&P500 -57%, VIX picco 80.86 (Nov 2008)",
+          "overlap_days": 66,
+          "overlap_pct": 1.0582010582010581
+        },
+        {
+          "name": "Euro Crisis",
+          "start": "2011-04-29",
+          "end": "2011-10-03",
+          "type": "REGIONAL_STRESS",
+          "max_dd_typical": -0.19,
+          "trigger": "Post-hoc: PIIGS spread >500bps, S&P -19%",
+          "overlap_days": 157,
+          "overlap_pct": 2.517235850569184
+        },
+        {
+          "name": "China Deval / Oil Crash",
+          "start": "2015-08-17",
+          "end": "2016-02-11",
+          "type": "SECTOR_STRESS",
+          "max_dd_typical": -0.14,
+          "trigger": "Post-hoc: Yuan -3% in 2 giorni, WTI $26, S&P -14%",
+          "overlap_days": 178,
+          "overlap_pct": 2.853936187269521
+        },
+        {
+          "name": "Q4 2018 Selloff",
+          "start": "2018-10-03",
+          "end": "2018-12-24",
+          "type": "VOLATILITY_SPIKE",
+          "max_dd_typical": -0.2,
+          "trigger": "Post-hoc: Fed hawkish, S&P -20% in Q4",
+          "overlap_days": 82,
+          "overlap_pct": 1.3147346480679813
+        },
+        {
+          "name": "COVID Crash",
+          "start": "2020-02-19",
+          "end": "2020-03-23",
+          "type": "SYSTEMIC_CRISIS",
+          "max_dd_typical": -0.34,
+          "trigger": "Post-hoc: S&P -34% in 33 giorni, VIX 82.69",
+          "overlap_days": 33,
+          "overlap_pct": 0.5291005291005291
+        },
+        {
+          "name": "Rate Tightening 2022",
+          "start": "2022-01-03",
+          "end": "2022-10-12",
+          "type": "TIGHTENING",
+          "max_dd_typical": -0.25,
+          "trigger": "Post-hoc: Fed +425bps, S&P -25%, bonds -13%",
+          "overlap_days": 282,
+          "overlap_pct": 4.521404521404522
+        }
+      ],
+      "regime_thresholds": {
+        "min_sharpe": 0.2,
+        "min_sharpe_acceptable": 0.35,
+        "min_sortino": 0.4,
+        "min_sortino_acceptable": 0.6,
+        "max_drawdown_equity": -0.55,
+        "max_drawdown_balanced": -0.35,
+        "acceptable_correlation_spike": 0.9,
+        "regime_note": "Soglie adattate per crisi sistemica",
+        "source": "GFC/COVID empirical data"
+      },
+      "regime_context": {
+        "regime_detected": "INCLUDES_SYSTEMIC_CRISIS",
+        "period_length": "17.1 anni",
+        "crisis_included": [
+          "GFC",
+          "Euro Crisis",
+          "China Deval / Oil Crash",
+          "Q4 2018 Selloff",
+          "COVID Crash",
+          "Rate Tightening 2022"
+        ],
+        "observed_max_dd": -0.3378113509020047,
+        "observed_volatility": 0.1885571302129227,
+        "institutional_note": "Le metriche osservate sono influenzate dalla presenza di regimi di stress sistemico (GFC, Euro Crisis, China Deval / Oil Crash, Q4 2018 Selloff, COVID Crash, Rate Tightening 2022) e devono essere interpretate in tale contesto. Sharpe e Sortino compressi sono fisiologici, non indicano fragilit\u00e0 strutturale.",
+        "drawdown_interpretation": "Max Drawdown -33.8% coerente con crisi sistemica inclusa nel periodo. Drawdown -50% su 100% equity durante GFC \u00e8 benchmark di riferimento."
+      },
+      "period_years": 17.075975359342916,
+      "includes_gfc": true,
+      "includes_covid": true
+    },
+    "temporal_decomposition": {
+      "crisis_performance": [
+        {
+          "name": "GFC",
+          "start": "2007-10-09",
+          "end": "2009-03-09",
+          "return": -0.04726736159075107,
+          "volatility": 0.39909628741175246,
+          "max_drawdown": -0.13293957877851448,
+          "days": 47
+        },
+        {
+          "name": "Euro Crisis",
+          "start": "2011-04-29",
+          "end": "2011-10-03",
+          "return": -0.14695732878826928,
+          "volatility": 0.2203226891316178,
+          "max_drawdown": -0.164147473253191,
+          "days": 109
+        },
+        {
+          "name": "China Deval / Oil Crash",
+          "start": "2015-08-17",
+          "end": "2016-02-11",
+          "return": -0.09837249394227598,
+          "volatility": 0.24717568795301412,
+          "max_drawdown": -0.13982221626389113,
+          "days": 125
+        },
+        {
+          "name": "Q4 2018 Selloff",
+          "start": "2018-10-03",
+          "end": "2018-12-24",
+          "return": -0.13637113595700334,
+          "volatility": 0.2251725971027681,
+          "max_drawdown": -0.13637113595700334,
+          "days": 59
+        },
+        {
+          "name": "COVID Crash",
+          "start": "2020-02-19",
+          "end": "2020-03-23",
+          "return": -0.2743076596939972,
+          "volatility": 0.4775470423855418,
+          "max_drawdown": -0.2743076596939972,
+          "days": 24
+        },
+        {
+          "name": "Rate Tightening 2022",
+          "start": "2022-01-03",
+          "end": "2022-10-12",
+          "return": -0.311279491204292,
+          "volatility": 0.24392627073595788,
+          "max_drawdown": -0.311279491204292,
+          "days": 195
+        }
+      ],
+      "expansion_performance": {
+        "days": 3765,
+        "years": 14.94047619047619,
+        "total_return": 12.325577836779972,
+        "cagr": 0.1892626822668455,
+        "volatility": 0.17253068390503665,
+        "sharpe": 1.4193354713415298
+      },
+      "recovery_analysis": [
+        {
+          "crisis": "GFC",
+          "crisis_end": "2009-03-09",
+          "recovery_date": "2009-03-12",
+          "days_to_recover": 3,
+          "months_to_recover": 0.09855453350854139,
+          "recovery_return": 0.05503860345503919,
+          "recovery_cagr": 679.6466079960602
+        },
+        {
+          "crisis": "Euro Crisis",
+          "crisis_end": "2011-10-03",
+          "recovery_date": "2012-02-15",
+          "days_to_recover": 135,
+          "months_to_recover": 4.434954007884363,
+          "recovery_return": 0.19496383872438772,
+          "recovery_cagr": 0.6191519571076285
+        },
+        {
+          "crisis": "China Deval / Oil Crash",
+          "crisis_end": "2016-02-11",
+          "recovery_date": "2016-07-15",
+          "days_to_recover": 155,
+          "months_to_recover": 5.091984231274639,
+          "recovery_return": 0.2724802367512804,
+          "recovery_cagr": 0.7644328138632581
+        },
+        {
+          "crisis": "Q4 2018 Selloff",
+          "crisis_end": "2018-12-24",
+          "recovery_date": "2019-04-17",
+          "days_to_recover": 114,
+          "months_to_recover": 3.7450722733245727,
+          "recovery_return": 0.2033429174297432,
+          "recovery_cagr": 0.8095201614569425
+        },
+        {
+          "crisis": "COVID Crash",
+          "crisis_end": "2020-03-23",
+          "recovery_date": "2020-06-10",
+          "days_to_recover": 79,
+          "months_to_recover": 2.59526938239159,
+          "recovery_return": 0.38802021239934836,
+          "recovery_cagr": 3.5536035889512956
+        },
+        {
+          "crisis": "Rate Tightening 2022",
+          "crisis_end": "2022-10-12",
+          "recovery_date": "2024-03-01",
+          "days_to_recover": 506,
+          "months_to_recover": 16.62286465177398,
+          "recovery_return": 0.501352717025815,
+          "recovery_cagr": 0.3408862401196775
+        }
+      ],
+      "rolling_metrics": {
+        "sharpe_3y": {
+          "current": 1.2064658341489132,
+          "min": 0.08263765736267611,
+          "max": 1.5083964064316722,
+          "median": 0.7256891439558076
+        },
+        "sharpe_5y": {
+          "current": 0.5576149602622168,
+          "min": 0.27662229745220834,
+          "max": 1.2936240301386195,
+          "median": 0.726992373309028
+        }
+      },
+      "worst_periods": {
+        "worst_12m": {
+          "return": -0.30803333457121895,
+          "end_date": "2022-11-09"
+        },
+        "worst_24m": {
+          "return": -0.15374410592617638,
+          "end_date": "2023-10-31"
+        }
+      }
+    },
+    "robustness_score": {
+      "score": 90,
+      "max_score": 100,
+      "percentage": 90.0,
+      "breakdown": [
+        "Recovery veloce: media 5 mesi (+25)",
+        "Rolling Sharpe 3Y sempre positivo (min 0.08) (+25)",
+        "Worst 12M moderato (-31%) (+15)",
+        "CAGR solido (16.3%) attraverso i cicli (+25)"
+      ],
+      "verdict": "ROBUSTO",
+      "verdict_detail": "Strutturalmente robusto attraverso i cicli"
+    },
+    "resilience_efficiency": {
+      "efficiency": {
+        "score": 70,
+        "level": "HIGH",
+        "breakdown": [
+          "Sharpe 0.79 \u2265 0.7 (+25)",
+          "Sortino 1.14 \u2265 1.0 (+25)",
+          "Calmar 0.48 \u2265 0.3 (+20)"
+        ]
+      },
+      "resilience": {
+        "score": 70,
+        "level": "HIGH",
+        "breakdown": [
+          "Max DD -33.8% > -35% (+20)",
+          "Worst 12M -30.8% > -35% (+20)",
+          "Recovery medio 5M < 12M (+30)"
+        ]
+      },
+      "quadrant": "OPTIMAL",
+      "quadrant_description": "Efficiente e Resiliente - raro, controllare se sostenibile",
+      "quadrant_icon": "\ud83c\udf1f",
+      "trade_off_note": "Trade-off intrinseco: aumentare efficienza (pi\u00f9 rischio) riduce tipicamente resilienza, e viceversa. La posizione ottimale dipende dagli obiettivi dell'investitore."
+    },
+    "trade_offs": [],
+    "data_integrity": {
+      "policy": "STAGGERED_ENTRY",
+      "policy_description": "Ogni asset entra quando nasce, pesi rinormalizzati. Preserva storia completa.",
+      "original_start": "2009-01-02",
+      "original_end": "2026-01-30",
+      "ticker_starts": {
+        "CNDX.L": "2010-09-15",
+        "EMIM.L": "2014-06-09",
+        "ITWN.L": "2009-01-02",
+        "NDIA.L": "2018-05-29",
+        "NUKL.DE": "2023-02-03",
+        "RBOT.L": "2016-09-08",
+        "SEMI.L": "2021-08-05",
+        "WCLD.L": "2019-09-03"
+      },
+      "common_start": "2023-02-03",
+      "data_gaps": {
+        "CNDX.L": 430,
+        "EMIM.L": 1370,
+        "NDIA.L": 2374,
+        "NUKL.DE": 3559,
+        "RBOT.L": 1941,
+        "SEMI.L": 3182,
+        "WCLD.L": 2695
+      },
+      "warnings": [
+        "\u2139\ufe0f STAGGERED_ENTRY: 7 ticker con storia parziale. Pesi rinormalizzati dinamicamente prima delle loro inception dates.",
+        "   \u2022 CNDX.L: 1.7 anni mancanti",
+        "   \u2022 EMIM.L: 5.4 anni mancanti",
+        "   \u2022 NDIA.L: 9.4 anni mancanti",
+        "\u2139\ufe0f STAGGERED_ENTRY: 15646 NaN = asset non ancora esistenti. Gestiti con dynamic weight renormalization nella simulazione."
+      ],
+      "staggered_info": {
+        "earliest_data": "2009-01-02",
+        "latest_inception": "2023-02-03",
+        "full_history_tickers": [
+          "ITWN.L"
+        ],
+        "partial_history_tickers": {
+          "CNDX.L": "1.7 anni mancanti",
+          "EMIM.L": "5.4 anni mancanti",
+          "NDIA.L": "9.4 anni mancanti",
+          "NUKL.DE": "14.1 anni mancanti",
+          "RBOT.L": "7.7 anni mancanti",
+          "SEMI.L": "12.6 anni mancanti",
+          "WCLD.L": "10.7 anni mancanti"
+        }
+      },
+      "data_quality_issue": false,
+      "nan_expected": "15646",
+      "nan_removed": 0,
+      "is_provisional": false
+    },
+    "analysis_status": "VALIDATED",
+    "benchmark_comparison": {
+      "methodology": "BENCHMARK_COMPARISON",
+      "note": "Confronto vs alternative passive. Distingue same-category vs opportunity-cost.",
+      "benchmarks": {
+        "GLOBAL_EQUITY": {
+          "name": "Global Equity (VT)",
+          "benchmark_cagr": 0.10435814946784583,
+          "benchmark_vol": 0.18548546457132806,
+          "benchmark_sharpe": 0.530135993435597,
+          "benchmark_max_dd": -0.34236211067086436,
+          "excess_return": 0.05814999909089158,
+          "tracking_error": 0.17406733211383874,
+          "information_ratio": 0.3340661247847581,
+          "beta": 0.5822808354010887,
+          "alpha": 0.09338801481371024,
+          "verdict": "HIGHER_RISK_ADJUSTED",
+          "interpretation": "Portfolio ha Sharpe migliore di Global Equity (VT) (strategia diversa).",
+          "comparison_type": "OPPORTUNITY_COST",
+          "rule8_applied": true,
+          "rule8_reason": "Portfolio has sector tilts (Rule 8)"
+        },
+        "SP500": {
+          "name": "S&P 500 (SPY)",
+          "benchmark_cagr": 0.13549358792568222,
+          "benchmark_vol": 0.17884422143870166,
+          "benchmark_sharpe": 0.6994693034942333,
+          "benchmark_max_dd": -0.337172738898242,
+          "excess_return": 0.027014560633055185,
+          "tracking_error": 0.17654280645825537,
+          "information_ratio": 0.15301988891539992,
+          "beta": 0.5749375667133801,
+          "alpha": 0.07610654614574784,
+          "verdict": "HIGHER_RISK_ADJUSTED",
+          "interpretation": "Portfolio ha Sharpe migliore di S&P 500 (SPY) (strategia diversa).",
+          "comparison_type": "OPPORTUNITY_COST",
+          "rule8_applied": true,
+          "rule8_reason": "Portfolio has sector tilts (Rule 8)"
+        },
+        "60_40": {
+          "name": "60/40 Portfolio",
+          "benchmark_cagr": 0.09718067109072837,
+          "benchmark_vol": 0.10893152921465168,
+          "benchmark_sharpe": 0.7333215608124983,
+          "benchmark_max_dd": -0.21801843412130414,
+          "excess_return": 0.06532747746800904,
+          "tracking_error": 0.16033957272796093,
+          "information_ratio": 0.4074320291400955,
+          "beta": 0.9320036629767384,
+          "alpha": 0.07057548039117571,
+          "verdict": "HIGHER_RISK_ADJUSTED",
+          "interpretation": "Portfolio ha Sharpe migliore di 60/40 Portfolio (strategia diversa).",
+          "comparison_type": "OPPORTUNITY_COST",
+          "rule8_applied": false,
+          "rule8_reason": null
+        }
+      },
+      "same_category_benchmarks": [],
+      "opportunity_cost_benchmarks": [
+        "GLOBAL_EQUITY",
+        "SP500",
+        "60_40"
+      ],
+      "rule8_params": {
+        "total_defensive_pct": 0.0,
+        "has_sector_tilts": "True"
+      },
+      "overall_verdict": "NO_SAME_CATEGORY_BENCHMARK",
+      "overall_interpretation": "Nessun benchmark same-category disponibile per confronto."
+    },
+    "risk_intent_analysis": {
+      "risk_intent": "GROWTH",
+      "risk_intent_spec": {
+        "level": "GROWTH",
+        "beta_range": [
+          0.8,
+          1.0
+        ],
+        "benchmark": "VT",
+        "max_dd_expected": -0.35,
+        "vol_expected": [
+          0.14,
+          0.18
+        ],
+        "description": "Portafoglio orientato alla crescita, accetta volatilit\u00e0 di mercato",
+        "min_beta_acceptable": 0.6,
+        "beta_fail_threshold": 0.4
+      },
+      "portfolio_beta": 0.5822808354010885,
+      "beta_gating": {
+        "passed": true,
+        "is_intent_mismatch": true,
+        "message": "\u26a0\ufe0f INTENT WARNING: Beta 0.58 sopra fail gate (0.4) ma sotto minimum acceptable (0.6) per GROWTH. Struttura coerente ma obiettivo disallineato.",
+        "verdict_type": "INTENT_MISALIGNED_STRUCTURE_OK"
+      },
+      "beta_adjusted_metrics": {
+        "absolute": {
+          "max_drawdown": -0.3378113509020047,
+          "volatility": 0.1885571302129227,
+          "sharpe": 0.7880771673463666,
+          "sortino": 1.137273790769553
+        },
+        "beta_adjusted": {
+          "expected_dd": -0.1979754840363701,
+          "excess_dd": -0.1398358668656346,
+          "relative_dd": 0.993562796770602,
+          "expected_vol": 0.08734212531016328,
+          "excess_vol": 0.10121500490275942,
+          "beta_adjusted_vol": 0.3238250664441672
+        },
+        "benchmark": {
+          "max_drawdown": -0.34,
+          "volatility": 0.15,
+          "sharpe": 0.45,
+          "sortino": 0.6
+        },
+        "portfolio_beta": 0.5822808354010885,
+        "verdicts": {
+          "dd": [
+            "OK",
+            "DD coerente con beta 0.58"
+          ],
+          "vol": [
+            "STRUCTURAL",
+            "Volatilit\u00e0 eccessiva (excess 10.1%)"
+          ]
+        }
+      },
+      "drawdown_attribution": {
+        "dd_type": "PARTIALLY_STRUCTURAL",
+        "excess_dd": 0.1398358668656346,
+        "expected_dd": -0.1979754840363701,
+        "observed_dd": -0.3378113509020047,
+        "benchmark_dd": -0.34,
+        "portfolio_beta": 0.5822808354010885,
+        "verdict": "Drawdown moderatamente elevato - verificare concentrazione/correlazioni",
+        "severity": "WARNING",
+        "is_structural": false,
+        "is_intent_issue": false,
+        "risk_intent": "GROWTH",
+        "intent_max_dd_expected": -0.35,
+        "dd_vs_intent": -0.012188649097995274,
+        "dd_within_intent": true
+      },
+      "confidence": {
+        "score": 87.01402134582793,
+        "level": "HIGH",
+        "components": {
+          "data_coverage": 100.0,
+          "pairwise_coverage": 100.0,
+          "stability_score": 78.08597974501268,
+          "history_length": 56.98412698412698
+        },
+        "gating": {
+          "ccr_allowed": true,
+          "correlation_verdict_allowed": "True",
+          "structural_verdict_allowed": true,
+          "full_analysis_allowed": true
+        },
+        "blocked_metrics": [],
+        "warnings": []
+      },
+      "verdicts": [
+        {
+          "rule_id": "V1",
+          "condition": "Sharpe 0.79 \u2265 Benchmark 0.45 AND TE 0.0% \u2264 3%",
+          "satisfied": true,
+          "type": "OK",
+          "message": "\u2705 EFFICIENTE: Risk-adjusted return \u2265 benchmark con tracking error contenuto"
+        },
+        {
+          "rule_id": "V2",
+          "condition": "max(CCR/Weight) = 1.48 \u2264 1.5",
+          "satisfied": true,
+          "type": "OK",
+          "message": "\u2705 CCR BILANCIATO: Nessun asset con risk leverage > 1.5x"
+        },
+        {
+          "rule_id": "V3",
+          "condition": "mean(Corr) = 0.01 < 0.70 AND NaN ratio 0% < 10%",
+          "satisfied": true,
+          "type": "OK",
+          "message": "\u2705 DIVERSIFICATO: Correlazione media 0.01 < 0.70 (matrice completa)"
+        },
+        {
+          "rule_id": "V4",
+          "condition": "Excess DD = -14.0% < 0 (meglio dell'atteso)",
+          "satisfied": true,
+          "type": "OK",
+          "message": "\u2705 DD ECCELLENTE: Drawdown migliore dell'atteso per beta - profilo conservativo"
+        },
+        {
+          "rule_id": "V5",
+          "condition": "Beta 0.58 vs Intent GROWTH",
+          "satisfied": false,
+          "type": "INTENT_MISMATCH",
+          "message": "\u26a0\ufe0f INTENT WARNING: Beta 0.58 sopra fail gate (0.4) ma sotto minimum acceptable (0.6) per GROWTH. Struttura coerente ma obiettivo disallineato."
+        }
+      ],
+      "aggregate_verdict": {
+        "scores": {
+          "data_integrity": 87.01402134582793,
+          "structural_coherence": 100,
+          "efficiency": 100.0,
+          "tail_risk": 60,
+          "aggregate": 88.75350533645698
+        },
+        "confidence_level": "HIGH",
+        "verdict_counts": {
+          "ok": 4,
+          "warning": 0,
+          "structural": 0,
+          "intent_mismatch": 1,
+          "info": 0
+        },
+        "risk_intent_declared": "GROWTH",
+        "intent_coherence": "MISMATCH",
+        "structural_coherence_status": "OK",
+        "final_verdict_type": "INTENT_MISALIGNED_STRUCTURE_OK",
+        "final_verdict": "\u26a0\ufe0f INTENT MISALIGNED - Struttura coerente ma obiettivo errato",
+        "final_qualifier": "Verifica Risk Intent dichiarato vs struttura portafoglio",
+        "risk_intent": "GROWTH"
+      }
+    },
+    "gate_analysis": {
+      "data_integrity": "PASS",
+      "intent_gate": "SOFT_FAIL",
+      "structural_gate": "PASS (no causal fragility detected)",
+      "final_verdict": "INTENT_MISALIGNED_STRUCTURE_OK",
+      "verdict_message": "\u26a0\ufe0f INTENT WARNING - Struttura OK, beta sotto target",
+      "why_not_contradictory": "Struttura coerente ma beta leggermente sotto il minimo per Risk Intent dichiarato. Non 'fragile' perch\u00e9 \u00e8 un problema di calibrazione obiettivo, non struttura. Suggerimento: considera downgrade a GROWTH_DIVERSIFIED. Note: CCR warnings (se presenti) sono DIAGNOSTICI, non terminali.",
+      "is_inconclusive": false,
+      "allows_portfolio_action": true
+    }
+  }
+}

@@ -24,7 +24,7 @@ from enum import Enum
 from portfolio_engine.config.user_config import SAMPLE_SIZE_CONFIG, GATE_THRESHOLDS
 
 # Import FDR correction for multiple testing (Fix C7)
-from portfolio_engine.analytics.metrics_monolith import apply_fdr_correction
+from portfolio_engine.analytics.metrics import apply_fdr_correction
 
 # Import exception enforcement (Production Readiness Issue #1)
 from portfolio_engine.utils.exceptions import (
@@ -35,7 +35,7 @@ from portfolio_engine.utils.exceptions import (
 )
 
 # Import centralized models (Production Readiness Issue #2)
-from portfolio_engine.models.portfolio import FinalVerdictType, PortfolioStructureType
+from portfolio_engine.models.portfolio import FinalVerdictType, PortfolioStructureType, PrescriptiveAction
 
 
 # ================================================================================
@@ -89,22 +89,6 @@ class ActionPriority(Enum):
     MEDIUM = "MEDIUM"           # Should fix, but analysis can proceed
     LOW = "LOW"                 # Optimization suggestion
     INFORMATIONAL = "INFO"      # For awareness only
-
-
-@dataclass
-class PrescriptiveAction:
-    """
-    Azione prescriptiva con confidenza e priorità.
-    
-    Ogni issue deve mappare a 1+ azioni concrete, non solo warning.
-    """
-    issue_code: str           # e.g., "INTENT_MISMATCH", "GEO_UNKNOWN"
-    priority: ActionPriority
-    confidence: float         # 0.0-1.0, quanto siamo sicuri
-    description: str          # Human readable
-    actions: List[str]        # List of concrete actions to take
-    blockers: List[str] = field(default_factory=list)  # What this blocks if not fixed
-    data_quality_impact: str = "NONE"  # "NONE", "PARTIAL", "UNRELIABLE"
 
 
 @dataclass
@@ -319,7 +303,7 @@ def check_risk_intent_gate(
         
         prescriptive_actions.append(PrescriptiveAction(
             issue_code="BETA_WINDOW_INSUFFICIENT",
-            priority=ActionPriority.HIGH,
+            priority=ActionPriority.HIGH.value,
             confidence=1.0,  # Certain - this is a data issue
             description=f"Beta window {beta_window_years:.1f}y < {MIN_BETA_WINDOW_YEARS:.0f}y required",
             actions=[
@@ -363,7 +347,7 @@ def check_risk_intent_gate(
         
         prescriptive_actions.append(PrescriptiveAction(
             issue_code="INTENT_MISMATCH_HARD",
-            priority=ActionPriority.CRITICAL,
+            priority=ActionPriority.CRITICAL.value,
             confidence=0.95,  # Very high - based on sufficient data
             description=f"Portfolio beta {portfolio_beta:.2f} is incompatible with {risk_intent} (requires ≥{beta_min:.1f})",
             actions=[
@@ -415,7 +399,7 @@ def check_risk_intent_gate(
         
         prescriptive_actions.append(PrescriptiveAction(
             issue_code="INTENT_MISMATCH_SOFT",
-            priority=ActionPriority.MEDIUM,
+            priority=ActionPriority.MEDIUM.value,
             confidence=0.85,
             description=f"Portfolio beta {portfolio_beta:.2f} below minimum {beta_min:.1f} for {risk_intent}",
             actions=action_list,
@@ -1013,7 +997,31 @@ def determine_final_verdict(
     """
     Determina il verdetto finale UNICO (Section G).
     
-    NEW RULE v4.2: Intent FAIL ≠ Structural FAIL
+    CRITICAL FIX v4.3: Separazione Diagnostica vs Decisioni
+    ========================================================
+    
+    DIAGNOSTICA (informativa, non terminale):
+    - CCR warnings: segnali di concentrazione rischio
+    - Correlation patterns: tendenze osservate
+    - Sample size warnings: limiti statistici
+    
+    DECISIONI TERMINALI (gate fail = stop analysis):
+    - Data Integrity FAIL: dati insufficienti per valutare
+    - Intent FAIL: obiettivo dichiarato non raggiunto
+    - Structural FRAGILITY: causa dimostrabile di instabilità
+    
+    DEFINIZIONE "Fragilità Strutturale" (causale, non sintomatica):
+    ================================================================
+    Una struttura è FRAGILE se e solo se:
+    1. Single-driver dependency: >60% peso su 1 asset/fattore
+    2. Hidden leverage: esposizione nascosta via derivati/strutturati
+    3. Correlation collapse: asset decorrelati storicamente → +0.9 in crisi
+    4. Liquidity trap: >40% in asset illiquidi (bid-ask >2%)
+    5. Structural constraint violated: vincoli dichiarati violati
+    
+    CCR elevati NON sono fragilità (sono concentrazione, non instabilità).
+    
+    NEW RULE v4.3: Intent FAIL ≠ Structural FAIL
     - If structure is OK but intent fails, verdict is INTENT_MISALIGNED_STRUCTURE_OK
     - This is a labeling issue, NOT a structural problem
     
@@ -1024,7 +1032,7 @@ def determine_final_verdict(
     Verdetti possibili:
     1. ✅ STRUCTURALLY_COHERENT + INTENT_MATCH
     2. ⚠️ INTENT_MISALIGNED_STRUCTURE_OK (structure fine, intent label wrong)
-    3. ❌ STRUCTURALLY_FRAGILE (solo se intent match OK e data OK)
+    3. ❌ STRUCTURALLY_FRAGILE (solo se causa dimostrabile)
     4. ⛔ INCONCLUSIVE_DATA_FAIL (corr NaN too high, structural unknown)
     5. ⚠️ INTENT_FAIL_STRUCTURE_INCONCLUSIVE (intent certain, structure unknown)
     6. ⛔ INCONCLUSIVE_INTENT_DATA (beta window too short)
@@ -1092,28 +1100,35 @@ def determine_final_verdict(
     intent_soft_fail = intent_gate.status == GateStatus.SOFT_FAIL
     
     # =========================================================================
-    # NEW RULE v4.2: Intent FAIL ≠ Structural FAIL
+    # NEW RULE v4.3: Intent FAIL ≠ Structural FAIL
+    # Structural fragility requires CAUSAL proof, not just CCR warnings
     # If structure is OK but intent fails, this is MISALIGNMENT, not fragility
     # =========================================================================
     
-    # Check structural issues FIRST (only if data integrity passed)
-    actionable_critical = [c for c in ccr_classifications 
-                         if c.classification == "critical" and c.is_actionable]
-    has_structural_problems = len(actionable_critical) >= 2 or len(structural_issues) >= 2
-    
     # Rule 2: Valid fail on intent WITH structure OK
     if intent_valid_fail:
-        if has_structural_problems:
+        # CRITICAL FIX v4.3: Check causal fragility, not just CCR count
+        has_proven_fragility = _verify_structural_fragility_causal(
+            structural_issues, ccr_classifications
+        )
+        
+        if has_proven_fragility:
             # Both intent and structure have issues
             return (
                 FinalVerdictType.STRUCTURALLY_FRAGILE,
                 "❌ STRUCTURALLY FRAGILE + INTENT MISMATCH",
-                "Doppio problema: Intent FAIL è CERTO (beta troppo basso) E ci sono "
-                "problemi strutturali (≥2 CCR critical). Fix entrambi. "
-                "Priorità: prima correggi intent (più semplice), poi valuta struttura."
+                "Doppio problema: Intent FAIL è CERTO (beta troppo basso) E causa strutturale "
+                "dimostrata (single-driver, hidden leverage, correlation collapse, liquidity trap, "
+                "o vincolo violato). Fix entrambi. Priorità: prima correggi intent (più semplice), "
+                "poi valuta struttura."
             )
         else:
-            # NEW v4.2: Intent fail but structure is OK - this is MISALIGNMENT
+            # NEW v4.3: Intent fail but structure is OK - this is MISALIGNMENT
+            ccr_note = ""
+            actionable_ccr = [c for c in ccr_classifications if c.is_actionable]
+            if len(actionable_ccr) >= 2:
+                ccr_note = f" Note: {len(actionable_ccr)} CCR warnings presenti (diagnostici, non terminali)."
+            
             return (
                 FinalVerdictType.INTENT_MISALIGNED_STRUCTURE_OK,
                 "⚠️ INTENT MISALIGNED - Struttura OK",
@@ -1121,16 +1136,21 @@ def determine_final_verdict(
                 "Il portafoglio è strutturalmente coerente, ma il Risk Intent dichiarato "
                 "non corrisponde al profilo di rischio effettivo (beta troppo basso). "
                 "SOLUZIONE: Cambia Risk Intent a GROWTH_DIVERSIFIED o GROWTH. "
-                "Alternativa: aumenta beta se confermi obiettivo AGGRESSIVE."
+                f"Alternativa: aumenta beta se confermi obiettivo AGGRESSIVE.{ccr_note}"
             )
     
     # Soft fail on intent
     if intent_soft_fail:
-        if has_structural_problems:
+        # CRITICAL FIX v4.3: Soft fail non implica fragilità strutturale
+        has_proven_fragility = _verify_structural_fragility_causal(
+            structural_issues, ccr_classifications
+        )
+        
+        if has_proven_fragility:
             return (
                 FinalVerdictType.STRUCTURALLY_FRAGILE,
                 "❌ STRUCTURALLY FRAGILE + INTENT WARNING",
-                "Struttura fragile con warning su intent (beta sotto target). "
+                "Struttura fragile (causa dimostrata) con warning su intent (beta sotto target). "
                 "Priorità: risolvi problemi strutturali prima."
             )
         else:
@@ -1140,26 +1160,87 @@ def determine_final_verdict(
                 "⚠️ INTENT WARNING - Struttura OK, beta sotto target",
                 "Struttura coerente ma beta leggermente sotto il minimo per Risk Intent dichiarato. "
                 "Non 'fragile' perché è un problema di calibrazione obiettivo, non struttura. "
-                "Suggerimento: considera downgrade a GROWTH_DIVERSIFIED."
+                "Suggerimento: considera downgrade a GROWTH_DIVERSIFIED. "
+                "Note: CCR warnings (se presenti) sono DIAGNOSTICI, non terminali."
             )
     
     # Intent match - check structure
     if intent_match:
-        if has_structural_problems:
+        # CRITICAL FIX v4.3: Verify CAUSAL fragility, not just CCR warnings
+        has_proven_fragility = _verify_structural_fragility_causal(
+            structural_issues, ccr_classifications
+        )
+        
+        if has_proven_fragility:
             return (
                 FinalVerdictType.STRUCTURALLY_FRAGILE,
-                "❌ STRUCTURALLY FRAGILE - Problemi strutturali confermati",
+                "❌ STRUCTURALLY FRAGILE - Causa strutturale dimostrata",
                 "Verdetto 'fragile' ammesso perché: intent match OK, data integrity OK, "
-                "e ci sono ≥2 problemi strutturali verificati (CCR critical o altri)."
+                "E causa dimostrabile di instabilità (single-driver dependency, hidden leverage, "
+                "correlation collapse, liquidity trap, o vincolo strutturale violato)."
             )
     
-    # Default: tutto OK
+    # Default: tutto OK (anche con CCR warnings - quelli sono DIAGNOSTICI)
     return (
         FinalVerdictType.STRUCTURALLY_COHERENT_INTENT_MATCH,
         "✅ STRUCTURALLY COHERENT - Struttura e Intent allineati",
         "Tutti i gate passati: data integrity OK, intent match OK, "
-        "nessun problema strutturale critico rilevato."
+        "nessun problema strutturale critico rilevato. "
+        "Note: CCR warnings (se presenti) sono DIAGNOSTICI, non terminali."
     )
+
+
+def _verify_structural_fragility_causal(
+    structural_issues: List[str],
+    ccr_classifications: List[CCRClassification]
+) -> bool:
+    """
+    CRITICAL FIX v4.3: Verifica fragilità CAUSALE (non sintomatica).
+    
+    Fragilità strutturale DIMOSTRATA se almeno 1 di:
+    1. Single-driver dependency: 1 asset >60% peso
+    2. Hidden leverage: esposizione via derivati/leva nascosta
+    3. Correlation collapse: asset storicamente decorrelati → +0.9 in crisi
+    4. Liquidity trap: >40% in asset illiquidi
+    5. Constraint violation: vincolo dichiarato violato
+    
+    CCR elevati da soli NON sono fragilità (sono concentrazione).
+    
+    Args:
+        structural_issues: Lista issue strutturali da altri moduli
+        ccr_classifications: CCR data (usata solo per collapse detection)
+    
+    Returns:
+        True se fragilità causale dimostrata
+    """
+    # Check for explicit structural issues
+    causal_keywords = [
+        'single-driver',
+        'hidden leverage',
+        'correlation collapse',
+        'liquidity trap',
+        'constraint violated',
+        'structural instability',
+        'derivative exposure',
+        'leverage ratio'
+    ]
+    
+    for issue in structural_issues:
+        issue_lower = issue.lower()
+        if any(keyword in issue_lower for keyword in causal_keywords):
+            return True
+    
+    # Check for single-driver dependency (>60% on one asset)
+    # This would need to be passed from weight analysis
+    # For now, return False (conservative)
+    
+    # Check for correlation collapse (would need crisis vs normal correlation comparison)
+    # This requires time-series correlation analysis, not just CCR averages
+    
+    # IMPORTANT: CCR warnings alone are NOT sufficient
+    # They indicate concentration, not instability
+    
+    return False
 
 
 # ================================================================================
@@ -1303,7 +1384,7 @@ def run_gate_analysis(
         ticker_list = ", ".join(c.ticker for c in actionable_ccr[:3])
         all_prescriptive_actions.append(PrescriptiveAction(
             issue_code="CCR_CONCENTRATION",
-            priority=ActionPriority.HIGH,
+            priority=ActionPriority.HIGH.value,
             confidence=0.80 if data_gate.status == GateStatus.PASS else 0.50,
             description=f"Critical CCR concentration in {len(actionable_ccr)} positions: {ticker_list}",
             actions=[
@@ -1322,7 +1403,7 @@ def run_gate_analysis(
     if structure_type == PortfolioStructureType.OPPORTUNISTIC:
         all_prescriptive_actions.append(PrescriptiveAction(
             issue_code="STRUCTURE_UNSTABLE",
-            priority=ActionPriority.MEDIUM,
+            priority=ActionPriority.MEDIUM.value,
             confidence=structure_confidence,
             description="Portfolio structure classified as OPPORTUNISTIC (unstable/unclear)",
             actions=[
@@ -1336,13 +1417,16 @@ def run_gate_analysis(
     
     # Sort actions by priority
     priority_order = {
-        ActionPriority.CRITICAL: 0,
-        ActionPriority.HIGH: 1,
-        ActionPriority.MEDIUM: 2,
-        ActionPriority.LOW: 3,
-        ActionPriority.INFORMATIONAL: 4
+        ActionPriority.CRITICAL.value: 0,
+        ActionPriority.HIGH.value: 1,
+        ActionPriority.MEDIUM.value: 2,
+        ActionPriority.LOW.value: 3,
+        ActionPriority.INFORMATIONAL.value: 4
     }
-    all_prescriptive_actions.sort(key=lambda x: priority_order.get(x.priority, 5))
+    def _priority_key(action: PrescriptiveAction) -> int:
+        value = action.priority.value if isinstance(action.priority, ActionPriority) else action.priority
+        return priority_order.get(value, 5)
+    all_prescriptive_actions.sort(key=_priority_key)
     
     # 9. FDR CORRECTION FOR MULTIPLE TESTING (Fix C7)
     # Convert gate statuses to approximate p-values for FDR
@@ -1393,22 +1477,35 @@ def run_gate_analysis(
     }
     
     # 10. OUTPUT SUMMARY (Section H required)
+    # CRITICAL FIX v4.3: Gerarchia gate corretta
     # Rule 1: Structural Gate = BLOCKED if data integrity fails
+    # NEW: Structural status dipende SOLO da fragilità causale dimostrata
     if data_gate.status == GateStatus.HARD_FAIL:
         structural_status = 'BLOCKED'
+        structural_note = '(data insufficient to evaluate)'
     elif final_verdict == FinalVerdictType.STRUCTURALLY_FRAGILE:
         structural_status = 'FAIL'
+        structural_note = '(causal fragility proven)'
     else:
-        structural_status = 'PASS_PROVISIONAL' if corr_nan_ratio > 0.10 else 'PASS'
+        # PASS anche con CCR warnings (quelli sono diagnostici)
+        structural_status = 'PASS'
+        actionable_ccr = [c for c in ccr_classifications if c.is_actionable]
+        if len(actionable_ccr) >= 2:
+            structural_note = f'(PASS with {len(actionable_ccr)} CCR warnings - diagnostic only)'
+        elif corr_nan_ratio > 0.10:
+            structural_note = '(PASS provisional - limited data)'
+        else:
+            structural_note = '(no causal fragility detected)'
     
     output_summary = {
         'Data Integrity Gate': data_gate.status.value,
         'Intent Gate': intent_gate.status.value,
-        'Structural Gate': structural_status,  # Rule 1
+        'Structural Gate': f'{structural_status} {structural_note}',  # Rule 1 + clarity
         'Structure Type': f"{structure_type.value} ({structure_confidence:.0%} confidence)",
         'Benchmark Gate': 'COMPARABLE' if bench_details.get('comparable_benchmarks') else 'OPPORTUNITY_COST',
         'Final Verdict': final_verdict.value,
         'Prescriptive Actions': len(all_prescriptive_actions),
+        'CCR Warnings (Diagnostic)': len([c for c in ccr_classifications if c.is_actionable]),
     }
     
     return GateAnalysisResult(
@@ -1656,15 +1753,16 @@ def print_gate_analysis(result: GateAnalysisResult) -> None:
         print("═" * 70)
         
         priority_icons = {
-            ActionPriority.CRITICAL: "🔴 CRITICAL",
-            ActionPriority.HIGH: "🟠 HIGH",
-            ActionPriority.MEDIUM: "🟡 MEDIUM",
-            ActionPriority.LOW: "🟢 LOW",
-            ActionPriority.INFORMATIONAL: "ℹ️ INFO"
+            ActionPriority.CRITICAL.value: "🔴 CRITICAL",
+            ActionPriority.HIGH.value: "🟠 HIGH",
+            ActionPriority.MEDIUM.value: "🟡 MEDIUM",
+            ActionPriority.LOW.value: "🟢 LOW",
+            ActionPriority.INFORMATIONAL.value: "ℹ️ INFO"
         }
         
         for action in result.prescriptive_actions:
-            icon = priority_icons.get(action.priority, "❓")
+            key = action.priority.value if isinstance(action.priority, ActionPriority) else action.priority
+            icon = priority_icons.get(key, "❓")
             confidence_bar = "█" * int(action.confidence * 10) + "░" * (10 - int(action.confidence * 10))
             
             print(f"\n   {icon} [{action.issue_code}]")

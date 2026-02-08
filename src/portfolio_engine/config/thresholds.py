@@ -45,6 +45,8 @@ class DocumentedThreshold:
     sensitivity: str  # How verdict changes with ±20% change in threshold
     alternative_values: Dict[str, float]  # Alternative values from other sources
     notes: str
+    last_validated: str = "2026-01-30"
+    rationale: str = ""
 
 
 # ================================================================================
@@ -79,7 +81,8 @@ SHARPE_THRESHOLDS = DocumentedThreshold(
     SENSITIVITY ANALYSIS:
     In a sample of 100 portfolios, changing threshold from 0.40 to 0.50 causes
     approximately 18 additional portfolios to receive "low Sharpe" warning.
-    """
+    """,
+    rationale="Valore sopra media storica equity USA per premiare diversificazione; evita falsi positivi in crisi usando regime adjustment."
 )
 
 SHARPE_REGIME_ADJUSTED = {
@@ -140,7 +143,8 @@ SORTINO_THRESHOLDS = DocumentedThreshold(
     - Sortino penalizes only downside deviation, not upside volatility
     - For equity portfolios, upside captures are valuable, not penalized
     - 0.50 threshold acknowledges that equity has meaningful upside potential
-    """
+    """,
+    rationale="Protegge dall’asimmetria downside: 0.50 ≈ Sharpe 0.35-0.40 su equity, coerente con standard JPM/Morningstar."
 )
 
 
@@ -156,12 +160,12 @@ DRAWDOWN_THRESHOLDS = {
         source_citation="S&P 500 drawdowns: 1929 (-86%), 1973 (-48%), 2000 (-49%), 2008 (-57%), 2020 (-34%)",
         source_url="S&P Dow Jones Indices, FRED",
         sensitivity="At -0.35: +20% flagged. At -0.50: +25% pass. Impact: HIGH",
-        alternative_values={
-            "Conservative": -0.35,
-            "Standard": -0.40,
-            "Crisis-aware": -0.55,
-        },
-        notes="""
+    alternative_values={
+        "Conservative": -0.35,
+        "Standard": -0.40,
+        "Crisis-aware": -0.55,
+    },
+    notes="""
         For 100% equity portfolios, -40% threshold expects to capture most drawdowns
         EXCEPT systemic crises (GFC, Great Depression).
         
@@ -169,7 +173,8 @@ DRAWDOWN_THRESHOLDS = {
         is not useful - it penalizes resilience. Instead, regime-adjust:
         - Normal: -40% threshold
         - Includes GFC/COVID: -55% threshold (100% equity)
-        """
+        """,
+    rationale="Baseline -40% riflette drawdown mediani equity globali post-1970; alzato a -55% in presenza di GFC/COVID per evitare falsi allarmi."
     ),
     "BALANCED_60_40": DocumentedThreshold(
         name="Max Drawdown (60/40 Balanced)",
@@ -178,12 +183,13 @@ DRAWDOWN_THRESHOLDS = {
         source_citation="Vanguard 60/40 portfolio historical max DD ~-35% (GFC)",
         source_url="https://investor.vanguard.com/portfolio/target-retirement-funds",
         sensitivity="At -0.20: +15% flagged. At -0.30: +15% pass. Impact: MODERATE",
-        alternative_values={
-            "Conservative": -0.20,
-            "Standard": -0.25,
-            "Crisis-aware": -0.35,
-        },
-        notes="60/40 should provide meaningful downside protection vs 100% equity."
+    alternative_values={
+        "Conservative": -0.20,
+        "Standard": -0.25,
+        "Crisis-aware": -0.35,
+    },
+    notes="60/40 should provide meaningful downside protection vs 100% equity.",
+    rationale="Storico 60/40: GFC ~-32%, COVID ~-22%; -25% è media pesata, consente warning senza penalizzare periodi normali."
     ),
     "DEFENSIVE": DocumentedThreshold(
         name="Max Drawdown (Defensive)",
@@ -192,12 +198,13 @@ DRAWDOWN_THRESHOLDS = {
         source_citation="Morningstar Defensive Fund criteria",
         source_url="https://www.morningstar.com/",
         sensitivity="At -0.12: +20% flagged. At -0.20: +25% pass. Impact: HIGH",
-        alternative_values={
-            "Conservative": -0.12,
-            "Standard": -0.15,
-            "Lenient": -0.20,
-        },
-        notes="Defensive portfolios promise limited downside - hold them to it."
+    alternative_values={
+        "Conservative": -0.12,
+        "Standard": -0.15,
+        "Lenient": -0.20,
+    },
+    notes="Defensive portfolios promise limited downside - hold them to it.",
+    rationale="Linee Morningstar/UCITS su fondi difensivi; -15% coerente con orizzonti <5y e comportamento retail."
     ),
 }
 
@@ -227,7 +234,8 @@ CONCENTRATION_THRESHOLDS = DocumentedThreshold(
     EXCEPTION: A position in a globally diversified ETF (VT, VWCE) that itself
     holds 8,000+ stocks is NOT a concentration risk in the traditional sense.
     This is handled by checking if the concentrated position is a core global ETF.
-    """
+    """,
+    rationale="Replica il 5/10/25 SEC per fondi diversificati; permette eccezione esplicita per ETF world altamente diversificati."
 )
 
 TOP3_CONCENTRATION = DocumentedThreshold(
@@ -242,7 +250,8 @@ TOP3_CONCENTRATION = DocumentedThreshold(
         "Standard": 0.60,
         "Core-satellite": 0.70,
     },
-    notes="Top 3 above 60% suggests barbell structure, which may be intentional."
+    notes="Top 3 above 60% suggests barbell structure, which may be intentional.",
+    rationale="Oltre 60% nei primi tre titoli spesso indica barbell/core-satellite; warning ma non fail se core ETF globali."
 )
 
 
@@ -273,7 +282,8 @@ CORRELATION_THRESHOLDS = DocumentedThreshold(
     CORRELATION BREAKDOWN LITERATURE:
     - Longin & Solnik (2001): Correlations increase in bear markets
     - Ang & Chen (2002): Asymmetric correlations and correlation breakdown
-    """
+    """,
+    rationale="0.85 implica beneficio di diversificazione marginale (<15% riduzione varianza); soglia allineata a prassi risk-management buy-side."
 )
 
 

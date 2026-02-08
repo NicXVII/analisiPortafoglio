@@ -19,20 +19,34 @@ from portfolio_engine.analytics.metrics.basic import calculate_cagr
 def calculate_sharpe_ratio(
     returns: pd.Series, 
     risk_free_annual: float = 0.02, 
-    periods: int = 252
+    periods: int = 252,
+    autocorr_lags: int | None = None
 ) -> float:
     """
     Sharpe Ratio calcolato correttamente.
     
     Formula: (Mean Return - Rf) / Std * sqrt(periods)
+    Optional autocorrelation adjustment (Lo, 2002) when autocorr_lags is set.
     """
     if returns.std() == 0:
         return 0.0
     
     rf_daily = (1 + risk_free_annual) ** (1/periods) - 1
     excess_return = returns.mean() - rf_daily
+
+    sharpe = excess_return / returns.std(ddof=1) * np.sqrt(periods)
+
+    # Optional autocorrelation adjustment (Lo, 2002)
+    if autocorr_lags:
+        lags = min(autocorr_lags, len(returns) - 1)
+        if lags > 0:
+            rho = np.array([returns.autocorr(lag=i) for i in range(1, lags + 1)])
+            weights = 1 - np.arange(1, lags + 1) / (lags + 1)
+            adjustment = np.sqrt(1 + 2 * np.sum(weights * rho))
+            if adjustment > 0:
+                sharpe = sharpe / adjustment
     
-    return float(excess_return / returns.std(ddof=1) * np.sqrt(periods))
+    return float(sharpe)
 
 
 def calculate_sortino_ratio(
@@ -58,10 +72,12 @@ def calculate_sortino_ratio(
     if tdd == 0:
         return 0.0
     
-    # Rendimento annualizzato
-    ann_return = (1 + returns.mean()) ** periods - 1
+    # Mantieni coerenza con TDD annualizzata: usa excess return medio giornaliero
+    # e annualizza linearmente (approccio standard per Sortino).
+    excess_daily = returns.mean() - rf_daily
+    annual_excess = excess_daily * periods
     
-    return float((ann_return - risk_free_annual) / tdd)
+    return float(annual_excess / tdd)
 
 
 def calculate_calmar_ratio(cagr: float, max_dd: float) -> float:
@@ -217,7 +233,9 @@ def analyze_multi_trough_recovery(equity: pd.Series) -> Dict[str, Any]:
 def calculate_var_cvar(
     returns: pd.Series, 
     confidence: float = 0.95,
-    periods: int = 252
+    periods: int = 252,
+    method: str = "historical",
+    bootstrap_samples: int = 0,
 ) -> Tuple[float, float]:
     """
     Calcola Value at Risk (VaR) e Conditional VaR (CVaR/Expected Shortfall).
@@ -231,23 +249,46 @@ def calculate_var_cvar(
     CVaR: Media delle perdite oltre il VaR (Expected Shortfall - tail risk)
     
     Returns:
-        (var_daily, cvar_daily) - valori giornalieri (negativi = perdita)
+        (var_daily, cvar_daily) - perdite giornaliere come valori POSITIVI
     """
-    # VaR parametrico (assumendo normalità) - SOLO per reference
-    # ATTENZIONE: Equity returns hanno fat tails (kurtosis > 3), questo sottostima rischio
-    var_parametric = returns.mean() - stats.norm.ppf(confidence) * returns.std()
+    method = (method or "historical").lower()
+
+    if method == "parametric":
+        # VaR parametrico (assumendo normalità) - SOLO per reference
+        var_historical = returns.mean() - stats.norm.ppf(confidence) * returns.std()
+    elif bootstrap_samples and bootstrap_samples > 0:
+        # Bootstrap VaR/CVaR
+        rng = np.random.default_rng()
+        qs = []
+        for _ in range(int(bootstrap_samples)):
+            sample = returns.sample(len(returns), replace=True, random_state=rng.integers(0, 1_000_000))
+            qs.append(sample.quantile(1 - confidence))
+        var_historical = float(np.mean(qs))
+    else:
+        # VaR storico (più robusto per fat tails)
+        var_historical = returns.quantile(1 - confidence)
     
-    # VaR storico (più robusto per fat tails)
-    # Usa quantile empirico - non assume distribuzione
-    var_historical = returns.quantile(1 - confidence)
-    
-    # CVaR (Expected Shortfall) - media dei rendimenti sotto il VaR
-    # Più informativo del VaR perché considera la coda intera
+    # CVaR (Expected Shortfall) - media delle perdite oltre il VaR
     tail_returns = returns[returns <= var_historical]
-    cvar = tail_returns.mean() if len(tail_returns) > 0 else var_historical
+    if bootstrap_samples and bootstrap_samples > 0:
+        # bootstrap ES
+        cvars = []
+        rng = np.random.default_rng()
+        for _ in range(int(bootstrap_samples)):
+            sample = returns.sample(len(returns), replace=True, random_state=rng.integers(0, 1_000_000))
+            q = sample.quantile(1 - confidence)
+            tail = sample[sample <= q]
+            cvars.append(tail.mean() if len(tail) > 0 else q)
+        cvar = float(np.mean(cvars))
+    else:
+        cvar = tail_returns.mean() if len(tail_returns) > 0 else var_historical
     
     # Sanity check: CVaR deve essere <= VaR (più negativo)
     if cvar > var_historical:
         cvar = var_historical
+
+    # Convenzione: ritorna perdite come valori POSITIVI
+    var_loss = abs(var_historical)
+    cvar_loss = abs(cvar)
     
-    return float(var_historical), float(cvar)
+    return float(var_loss), float(cvar_loss)

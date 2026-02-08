@@ -135,7 +135,7 @@ def calculate_sharpe_confidence_interval(
     """
     periods = 252
     n = len(returns)
-    n_years = n / periods
+    n_years = _infer_years_from_index(returns, periods)
     
     rf_daily = (1 + risk_free_annual) ** (1/periods) - 1
     
@@ -147,11 +147,16 @@ def calculate_sharpe_confidence_interval(
     # SE(SR) ≈ sqrt((1 + 0.5*SR²) / n_years)
     se_analytical = np.sqrt((1 + 0.5 * sharpe**2) / n_years) if n_years > 0 else 0
     
-    # Bootstrap per robustezza
+    # Bootstrap per robustezza (block bootstrap per preservare autocorrelazione)
     bootstrap_sharpes = []
+    block_size = max(1, min(20, len(returns) // 10))
     for _ in range(n_bootstrap):
-        # Resample con replacement
-        sample = returns.sample(n=n, replace=True)
+        n_blocks = len(returns) // block_size + 1
+        blocks = []
+        for _ in range(n_blocks):
+            start = np.random.randint(0, len(returns) - block_size + 1)
+            blocks.append(returns.iloc[start:start + block_size].values)
+        sample = pd.Series(np.concatenate(blocks)[:len(returns)])
         excess_sample = sample - rf_daily
         sr = excess_sample.mean() / sample.std(ddof=1) * np.sqrt(periods) if sample.std() > 0 else 0
         bootstrap_sharpes.append(sr)
@@ -187,7 +192,7 @@ def calculate_cagr_confidence_interval(
     """
     periods = 252
     n = len(equity)
-    n_years = n / periods
+    n_years = _infer_years_from_index(equity, periods)
     
     # Point estimate
     total_return = equity.iloc[-1] / equity.iloc[0]
@@ -197,7 +202,7 @@ def calculate_cagr_confidence_interval(
     returns = equity.pct_change().dropna()
     
     # Block bootstrap (block size = ~20 giorni per catturare autocorrelazione)
-    block_size = min(20, len(returns) // 10)
+    block_size = max(1, min(20, len(returns) // 10))
     bootstrap_cagrs = []
     
     for _ in range(n_bootstrap):
@@ -250,7 +255,7 @@ def calculate_max_dd_confidence_interval(
     returns = equity.pct_change().dropna()
     bootstrap_dds = []
     
-    block_size = min(20, len(returns) // 10)
+    block_size = max(1, min(20, len(returns) // 10))
     
     for _ in range(n_bootstrap):
         n_blocks = len(returns) // block_size + 1
@@ -277,3 +282,15 @@ def calculate_max_dd_confidence_interval(
         "se": np.std(bootstrap_dds),
         "confidence": confidence,
     }
+
+
+def _infer_years_from_index(series: pd.Series, periods: int = 252) -> float:
+    """
+    Infer number of years from a DatetimeIndex when available.
+    Falls back to len/periods for non-datetime indices.
+    """
+    if isinstance(series.index, pd.DatetimeIndex) and len(series) > 1:
+        delta_days = (series.index[-1] - series.index[0]).days
+        if delta_days > 0:
+            return delta_days / 365.25
+    return len(series) / periods if periods > 0 else 0.0

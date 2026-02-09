@@ -1527,6 +1527,7 @@ def print_optimization_analysis(opt_result: dict | None) -> None:
 
     analysis = opt_result.get("current_vs_optimal", {}) if isinstance(opt_result, dict) else {}
     curr = analysis.get("current", {})
+    curr_hist = opt_result.get("current_historical_metrics", {}) if isinstance(opt_result, dict) else {}
     eff = analysis.get("efficiency_analysis", {})
     suggestions = analysis.get("suggestions", [])
     key_portfolios = opt_result.get("key_portfolios", {}) if isinstance(opt_result, dict) else {}
@@ -1553,9 +1554,14 @@ def print_optimization_analysis(opt_result: dict | None) -> None:
     print("=" * 70)
 
     if curr:
-        print(f"Current Sharpe:        {curr.get('sharpe_ratio', 0):.3f}")
-        print(f"Current Volatility:    {curr.get('volatility', 0):.2%}")
-        print(f"Current Exp. Return:   {curr.get('expected_return', 0):.2%}")
+        print(f"Current Sharpe (expected):   {curr.get('sharpe_ratio', 0):.3f}")
+        print(f"Current Volatility (exp):    {curr.get('volatility', 0):.2%}")
+        print(f"Current Exp. Return:         {curr.get('expected_return', 0):.2%}")
+    if curr_hist:
+        print(f"Current Sharpe (historical): {curr_hist.get('sharpe', 0):.3f}")
+        print(f"Current CAGR (historical):   {curr_hist.get('cagr', 0):.2%}")
+        print(f"Current Vol (historical):    {curr_hist.get('volatility', 0):.2%}")
+        print(f"Current MaxDD (historical):  {curr_hist.get('max_drawdown', 0):.2%}")
     if eff:
         score = eff.get("efficiency_score")
         if score is not None:
@@ -1565,10 +1571,19 @@ def print_optimization_analysis(opt_result: dict | None) -> None:
         if eff.get("volatility_gap") is not None:
             print(f"Volatility gap: {eff['volatility_gap']:.2%}")
 
-    if suggestions:
+    if suggestions or curr_hist:
         print("\nSuggestions:")
         for s in suggestions:
-            print(f"- {s}")
+            print(f"- [Expected] {s}")
+        # Historical comparison vs key max_sharpe
+        curr_sh = curr_hist.get("sharpe") if curr_hist else None
+        max_sh = key_metrics.get("max_sharpe", {}).get("sharpe")
+        if curr_sh is not None and max_sh is not None:
+            gap = max_sh - curr_sh
+            if gap > 0.01:
+                print(f"- [Historical] Sharpe migliorabile: {curr_sh:.2f} vs {max_sh:.2f} (gap {gap:.2f})")
+            else:
+                print(f"- [Historical] Sharpe già vicino al migliore: {curr_sh:.2f} vs {max_sh:.2f} (gap {gap:.2f})")
 
     if key_portfolios:
         print("\nKey portfolios (CAGR/Vol/MaxDD/Sharpe | weights):")

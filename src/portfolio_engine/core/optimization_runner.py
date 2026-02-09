@@ -67,16 +67,21 @@ def run_optimization_analysis(
             use_shrinkage=use_shrinkage,
         )
 
-        key_metrics = _compute_key_portfolio_metrics(
+    key_metrics = _compute_key_portfolio_metrics(
+        returns=returns,
+        tickers=tickers,
+        risk_free_rate=risk_free_rate,
+        key_portfolios={
+            "min_variance": frontier.min_variance,
+            "max_sharpe": frontier.max_sharpe,
+            "max_return": frontier.max_return,
+            "risk_parity": frontier.risk_parity,
+        },
+    )
+        current_hist = _compute_portfolio_metrics_from_weights(
             returns=returns,
-            tickers=tickers,
+            weights=current_weights,
             risk_free_rate=risk_free_rate,
-            key_portfolios={
-                "min_variance": frontier.min_variance,
-                "max_sharpe": frontier.max_sharpe,
-                "max_return": frontier.max_return,
-                "risk_parity": frontier.risk_parity,
-            },
         )
         mc_results = None
         if monte_carlo and monte_carlo.get("enabled", False):
@@ -99,6 +104,7 @@ def run_optimization_analysis(
                 "risk_parity": frontier.risk_parity,
             },
             "key_portfolio_metrics": key_metrics,
+            "current_historical_metrics": current_hist,
             "monte_carlo": mc_results,
         }
     except Exception as exc:
@@ -198,3 +204,27 @@ def _compute_key_portfolio_metrics(
             "sharpe": float(sharpe),
         }
     return metrics
+
+
+def _compute_portfolio_metrics_from_weights(
+    returns: pd.DataFrame,
+    weights: np.ndarray,
+    risk_free_rate: float,
+) -> Dict[str, float]:
+    """Calcola metriche storiche per un set di pesi."""
+    if returns is None or returns.empty:
+        return {}
+    w = np.array(weights, dtype=float)
+    w = w / w.sum()
+    port_ret = (returns * w).sum(axis=1)
+    equity = (1 + port_ret).cumprod()
+    cagr = calculate_cagr_correct(equity)
+    vol = calculate_annualized_volatility(port_ret)
+    sharpe = calculate_sharpe_ratio(port_ret, risk_free_rate)
+    max_dd, _, _ = calculate_max_drawdown(equity)
+    return {
+        "cagr": float(cagr),
+        "volatility": float(vol),
+        "max_drawdown": float(max_dd),
+        "sharpe": float(sharpe),
+    }

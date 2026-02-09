@@ -35,8 +35,8 @@ SAMPLE_SIZE_CONFIG = {
     'regime_min_days': 252,                  # Minimum days for regime analysis
     
     # Monte Carlo simulation
-    'monte_carlo_simulations': 2000,          # Number of MC simulations (was hardcoded)
-    'bootstrap_iterations': 1000,             # Bootstrap iterations for SE estimation
+    'monte_carlo_simulations': 5000,          # Number of MC simulations (was hardcoded)
+    'bootstrap_iterations': 2000,             # Bootstrap iterations for SE estimation
 }
 
 
@@ -151,7 +151,7 @@ FEES = {
 # =========================
 RISK = {
     "var_method": "historical",      # "historical" | "parametric" | "bootstrap"
-    "var_bootstrap_samples": 200,    # usato se var_method == "bootstrap"
+    "var_bootstrap_samples": 400,    # usato se var_method == "bootstrap"
 }
 
 # =========================
@@ -168,14 +168,14 @@ BIAS = {
 OPTIMIZATION = {
     "enabled": True,
     # Maggiore granularità per analisi: 100 punti sulla frontiera
-    "n_frontier_points": 1000,
-    "max_weight": 0.50,
+    "n_frontier_points": 2000,
+    "max_weight": 1,
     "include_risk_parity": True,
     "use_shrinkage": True,
     "show_efficiency_gap": True,
     "monte_carlo": {
         "enabled": True,
-        "n_sims": 20000,
+        "n_sims": 50000,
         "horizon_days": 252,
         "seed": 42,
         "block_size": 5,
@@ -198,13 +198,12 @@ OPTIMIZATION = {
 #
 # 👉 GROWTH: Massimizzare profitto su 15 anni con beta controllato
 RISK_INTENT = "GROWTH"  # Beta 0.8-1.0, growth focus
-
 PORTFOLIO = {
-    "VWCE.DE": 0.70,  # Vanguard FTSE All-World UCITS
-    "IS3N.DE": 0.20,  # iShares Core MSCI EM IMI UCITS
-    "IS3Q.DE": 0.10,  # iShares MSCI World Quality Factor UCITS
+    "VWCE.DE": 0.40,  # All-World Core
+    "CNDX.L": 0.30,   # Nasdaq 100
+    "IWQU.L": 0.15,   # Quality
+    "EMIM.L": 0.15,   # Emerging Markets
 }
-
 
 
 

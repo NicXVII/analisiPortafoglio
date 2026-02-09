@@ -66,3 +66,5 @@
 2026-02-09 21:38:20 | [32mINFO[0m | portfolio_engine.core.main_legacy | ML structured export saved: output/data/ml_structured_export_20260209_213820.json
 2026-02-09 21:38:20 | [32mINFO[0m | portfolio_engine.core.main_legacy | Structured output saved: output/data/analysis_result.json
 2026-02-09 21:38:20 | [32mINFO[0m | portfolio_engine.core.main_legacy | Report PDF generato: /home/nic/Desktop/Developer/GitHub/analisiPortafogli/output/portfolio_analysis.pdf
+2026-02-09 21:53:32 | [32mINFO[0m | portfolio_engine.core.main_legacy | Starting portfolio analysis
+2026-02-09 21:53:32 | [32mINFO[0m | portfolio_engine.core.main_legacy | Portfolio storage: saved (hash=d407e04ab838e8c984a5084090531d4d4713a9e13aedd9e3441bbbbb87a2d227)

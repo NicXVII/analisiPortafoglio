@@ -67,17 +67,17 @@ def run_optimization_analysis(
             use_shrinkage=use_shrinkage,
         )
 
-    key_metrics = _compute_key_portfolio_metrics(
-        returns=returns,
-        tickers=tickers,
-        risk_free_rate=risk_free_rate,
-        key_portfolios={
-            "min_variance": frontier.min_variance,
-            "max_sharpe": frontier.max_sharpe,
-            "max_return": frontier.max_return,
-            "risk_parity": frontier.risk_parity,
-        },
-    )
+        key_metrics = _compute_key_portfolio_metrics(
+            returns=returns,
+            tickers=tickers,
+            risk_free_rate=risk_free_rate,
+            key_portfolios={
+                "min_variance": frontier.min_variance,
+                "max_sharpe": frontier.max_sharpe,
+                "max_return": frontier.max_return,
+                "risk_parity": frontier.risk_parity,
+            },
+        )
         current_hist = _compute_portfolio_metrics_from_weights(
             returns=returns,
             weights=current_weights,

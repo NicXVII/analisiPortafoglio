@@ -401,8 +401,16 @@ def _load_and_validate_data(config: Dict[str, Any]) -> Tuple[pd.DataFrame, pd.Da
     weights = np.array(config["weights"], dtype=float)
     years = config.get("years_history", 5)
     end = config["end_date"]
-    start = config["start_date"] or calculate_start_date(years, end)
-    start_dt = datetime.strptime(start, "%Y-%m-%d") if isinstance(start, str) else start
+    
+    # Download sempre dalla data più antica disponibile (yfinance restituisce solo ciò che esiste)
+    # start_dt (per survivorship bias) resta ancorato a years_history
+    if config["start_date"]:
+        start = config["start_date"]
+        start_dt = datetime.strptime(start, "%Y-%m-%d") if isinstance(start, str) else start
+    else:
+        start = "1970-01-01"  # scarica tutta la storia disponibile
+        start_dt = datetime.strptime(calculate_start_date(years, end), "%Y-%m-%d")
+    
     risk_intent = config.get("risk_intent", "GROWTH")
     
     # === RISK INTENT VALIDATION ===
@@ -423,13 +431,17 @@ def _load_and_validate_data(config: Dict[str, Any]) -> Tuple[pd.DataFrame, pd.Da
         raise ValueError("Tickers e weights devono avere stessa lunghezza")
     
     # === DOWNLOAD DATI ===
-    logger.info(f"Downloading data for {len(tickers)} tickers...")
-    prices = download_data(tickers, start, end)
+    benchmark_tickers = ['VT', 'SPY', 'BND']
+    all_tickers = list(dict.fromkeys(list(tickers) + benchmark_tickers))
+    logger.info(f"Downloading data for {len(all_tickers)} tickers (portfolio + benchmarks)...")
+    all_prices = download_data(all_tickers, start, end)
+    prices = all_prices[[t for t in tickers if t in all_prices.columns]] if not all_prices.empty else pd.DataFrame()
 
     # FX conversion to base currency (if multiple currencies)
     fx_config = config.get("fx", {})
     base_ccy = fx_config.get("base_currency", "USD")
-    currency_map = get_currency_map(tickers)
+    tickers_present = [t for t in tickers if t in prices.columns]
+    currency_map = get_currency_map(tickers_present)
     prices, fx_info = convert_to_base_currency(
         prices,
         currency_map,
@@ -448,11 +460,12 @@ def _load_and_validate_data(config: Dict[str, Any]) -> Tuple[pd.DataFrame, pd.Da
     if fx_info.get("missing") or fx_info.get("skipped"):
         is_provisional = True
     
-    # === DOWNLOAD BENCHMARK ===
-    logger.info("Downloading benchmark data (VT, SPY, BND)...")
-    benchmark_tickers = ['VT', 'SPY', 'BND']
-    bench_to_download = [t for t in benchmark_tickers if t not in tickers]
-    benchmark_prices = download_data(bench_to_download, start, end) if bench_to_download else pd.DataFrame()
+    # === BENCHMARK DATA (from unified download) ===
+    benchmark_prices = (
+        all_prices[[t for t in benchmark_tickers if t in all_prices.columns]]
+        if not all_prices.empty
+        else pd.DataFrame()
+    )
 
     # Convert benchmark to base currency too
     if not benchmark_prices.empty:
@@ -677,7 +690,7 @@ def _calculate_portfolio_metrics(
         "Vol": [asset_vol[t] for t in tickers],
     }, index=tickers)
     
-    asset_df = asset_df.join(risk_contrib[['CCR%']].rename(columns={'CCR%': 'RiskContrib%'}))
+    asset_df = asset_df.join(risk_contrib[['RC%']].rename(columns={'RC%': 'RiskContrib%'}))
     
     return equity, port_ret, metrics, asset_df, risk_contrib, conditional_ccr
 

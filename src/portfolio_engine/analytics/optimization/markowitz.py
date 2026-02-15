@@ -41,11 +41,15 @@ def min_variance_portfolio(
     allow_short: bool = False,
     max_weight: float = 1.0,
     use_shrinkage: bool = True,
+    _precomputed: Optional[tuple] = None,
 ) -> OptimizationResult:
     """Minimum Variance Portfolio."""
     _validate_inputs(returns)
-    mu = compute_expected_returns(returns)
-    cov = compute_covariance_matrix(returns, use_shrinkage=use_shrinkage)
+    if _precomputed is not None:
+        mu, cov = _precomputed
+    else:
+        mu = compute_expected_returns(returns)
+        cov = compute_covariance_matrix(returns, use_shrinkage=use_shrinkage)
     n = len(mu)
 
     lb = -max_weight if allow_short else 0.0
@@ -74,13 +78,17 @@ def max_sharpe_portfolio(
     allow_short: bool = False,
     max_weight: float = 1.0,
     use_shrinkage: bool = True,
+    _precomputed: Optional[tuple] = None,
 ) -> OptimizationResult:
     """Tangent portfolio (Sharpe massimo)."""
     if risk_free_annual is not None:
         risk_free_rate = risk_free_annual
     _validate_inputs(returns)
-    mu = compute_expected_returns(returns)
-    cov = compute_covariance_matrix(returns, use_shrinkage=use_shrinkage)
+    if _precomputed is not None:
+        mu, cov = _precomputed
+    else:
+        mu = compute_expected_returns(returns)
+        cov = compute_covariance_matrix(returns, use_shrinkage=use_shrinkage)
     n = len(mu)
 
     lb = -max_weight if allow_short else 0.0
@@ -113,11 +121,15 @@ def risk_parity_portfolio(
     allow_short: bool = False,
     max_weight: float = 1.0,
     use_shrinkage: bool = True,
+    _precomputed: Optional[tuple] = None,
 ) -> OptimizationResult:
     """Equal Risk Contribution portfolio."""
     _validate_inputs(returns)
-    mu = compute_expected_returns(returns)
-    cov = compute_covariance_matrix(returns, use_shrinkage=use_shrinkage)
+    if _precomputed is not None:
+        mu, cov = _precomputed
+    else:
+        mu = compute_expected_returns(returns)
+        cov = compute_covariance_matrix(returns, use_shrinkage=use_shrinkage)
     n = len(mu)
 
     def risk_contribution(w: np.ndarray) -> np.ndarray:

@@ -846,7 +846,7 @@ def evaluate_verdicts(
     # - PROBLEMATICA solo se: non dichiarata, non compensata, incoerente con obiettivo
     if ccr_data is not None and 'CCR' not in confidence.blocked_metrics:
         weights = ccr_data['Weight'].values if 'Weight' in ccr_data.columns else None
-        ccr_pct = ccr_data['CCR%'].values if 'CCR%' in ccr_data.columns else None
+        ccr_pct = ccr_data['RC%'].values if 'RC%' in ccr_data.columns else None
         
         if weights is not None and ccr_pct is not None:
             ccr_w_ratios = ccr_pct / weights

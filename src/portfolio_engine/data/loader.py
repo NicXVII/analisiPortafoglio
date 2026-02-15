@@ -297,46 +297,71 @@ def convert_to_base_currency(
         return (converted, info) if return_info else converted
 
     import yfinance as yf
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+
+    # Group tickers by currency to avoid redundant FX downloads
+    currency_groups: dict[str, list[str]] = {}
     for t in prices.columns:
         cur = currency_map.get(t)
-        if not cur or cur == base_currency:
-            continue
+        if cur and cur != base_currency:
+            currency_groups.setdefault(cur, []).append(t)
+
+    if not currency_groups:
+        return (converted, info) if return_info else converted
+
+    start_dt = str(prices.index.min().date())
+    end_dt = str(prices.index.max().date())
+
+    def _fetch_fx(cur: str) -> tuple[str, pd.Series | None]:
         pair = f"{cur}{base_currency}=X"
-        rate_series = None
         if pair in manual_rates:
-            rate_series = pd.Series(manual_rates[pair], index=prices.index)
-        else:
-            try:
-                fx = yf.download(pair, start=str(prices.index.min().date()), end=str(prices.index.max().date()), progress=False)
-                # Normalizza a Series
-                if isinstance(fx, pd.DataFrame):
-                    if isinstance(fx.columns, pd.MultiIndex):
-                        fx = fx["Close"]
-                    if "Close" in fx.columns:
-                        fx = fx["Close"]
-                    elif fx.shape[1] == 1:
-                        fx = fx.iloc[:, 0]
-                fx = fx.squeeze()
-                if fx.empty:
-                    rate_series = None
-                else:
-                    rate_series = fx.reindex(prices.index).ffill().bfill()
-            except Exception:
-                rate_series = None
+            return cur, pd.Series(manual_rates[pair], index=prices.index)
+        try:
+            fx = yf.download(pair, start=start_dt, end=end_dt, progress=False)
+            # Normalizza a Series
+            if isinstance(fx, pd.DataFrame):
+                if isinstance(fx.columns, pd.MultiIndex):
+                    fx = fx["Close"]
+                if "Close" in fx.columns:
+                    fx = fx["Close"]
+                elif fx.shape[1] == 1:
+                    fx = fx.iloc[:, 0]
+            fx = fx.squeeze()
+            if fx.empty:
+                return cur, None
+            rate_series = fx.reindex(prices.index).ffill().bfill()
+            return cur, rate_series
+        except Exception:
+            return cur, None
+
+    max_workers = min(8, max(1, len(currency_groups)))
+    fx_rates: dict[str, pd.Series | None] = {}
+    with ThreadPoolExecutor(max_workers=max_workers) as ex:
+        futures = {ex.submit(_fetch_fx, cur): cur for cur in currency_groups}
+        for fut in as_completed(futures):
+            cur, rate_series = fut.result()
+            fx_rates[cur] = rate_series
+
+    # Apply FX rates to tickers
+    for cur, tickers_for_cur in currency_groups.items():
+        rate_series = fx_rates.get(cur)
+        pair = f"{cur}{base_currency}=X"
         if rate_series is None:
-            if warn_on_missing:
-                logger.warning(f"FX missing for {t} ({cur}->{base_currency}); leaving unconverted.")
-            info["missing"].append(t)
+            for t in tickers_for_cur:
+                if warn_on_missing:
+                    logger.warning(f"FX missing for {t} ({cur}->{base_currency}); leaving unconverted.")
+                info["missing"].append(t)
             continue
-        # Allinea il tasso all'indice originale dei prezzi per evitare mismatch di lunghezza
         rate_on_prices = rate_series.reindex(prices.index).ffill().bfill()
         if len(rate_on_prices) != len(prices):
-            logger.warning(f"FX series length mismatch for {t}; skipping conversion.")
-            info["skipped"].append(t)
+            for t in tickers_for_cur:
+                logger.warning(f"FX series length mismatch for {t}; skipping conversion.")
+                info["skipped"].append(t)
             continue
-        converted[t] = prices[t] * rate_on_prices
-        info["converted"].append(t)
-        logger.info(f"Converted {t} from {cur} to {base_currency} using {pair}")
+        for t in tickers_for_cur:
+            converted[t] = prices[t] * rate_on_prices
+            info["converted"].append(t)
+            logger.info(f"Converted {t} from {cur} to {base_currency} using {pair}")
 
     return (converted, info) if return_info else converted
 

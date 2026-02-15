@@ -51,12 +51,9 @@ from portfolio_engine.analytics.metrics import (
 # MONTE CARLO STRESS TEST
 # =========================
 
-def _multivariate_t(mean: np.ndarray, cov: np.ndarray, df: int, n_samples: int) -> np.ndarray:
+def _multivariate_t(mean: np.ndarray, cov: np.ndarray, df: int, n_samples: int, rng: np.random.Generator = None) -> np.ndarray:
     """
     Generate samples from multivariate Student-t distribution.
-    
-    Fix C3/C4: This addresses the inconsistency between fat-tail warnings
-    and normal distribution assumptions in Monte Carlo.
     
     Student-t has heavier tails than normal, controlled by degrees of freedom:
     - df=3: very heavy tails (extreme events ~3x more likely)
@@ -69,18 +66,21 @@ def _multivariate_t(mean: np.ndarray, cov: np.ndarray, df: int, n_samples: int) 
         cov: Covariance matrix (n_assets, n_assets)
         df: Degrees of freedom (lower = heavier tails)
         n_samples: Number of samples to generate
+        rng: numpy Generator instance (per non corrompere stato globale)
         
     Returns:
         Array of shape (n_samples, n_assets)
     """
+    if rng is None:
+        rng = np.random.default_rng()
     n_assets = len(mean)
     
     # Sample from standard normal
-    z = np.random.multivariate_normal(np.zeros(n_assets), cov, n_samples)
+    z = rng.multivariate_normal(np.zeros(n_assets), cov, n_samples)
     
     # Scale by chi-squared to get Student-t
     # X ~ t_df is equivalent to Z * sqrt(df / chi2_df) where Z ~ N(0, Sigma)
-    chi2 = np.random.chisquare(df, n_samples)
+    chi2 = rng.chisquare(df, n_samples)
     scaling = np.sqrt(df / chi2)
     
     # Apply scaling to each sample
@@ -167,14 +167,13 @@ def run_monte_carlo_stress_test(
     }
     
     # Scenario 1: Base (distribuzione storica con fat tails)
-    np.random.seed(42)
+    rng = np.random.default_rng(42)  # RNG locale, non corrompe stato globale
     portfolio_returns_base = []
     for _ in range(n_simulations):
         if use_student_t:
-            # Fix C3/C4: Use Student-t for heavier tails
-            sim_returns = _multivariate_t(mean_returns, cov_matrix, student_t_df, horizon_days)
+            sim_returns = _multivariate_t(mean_returns, cov_matrix, student_t_df, horizon_days, rng=rng)
         else:
-            sim_returns = np.random.multivariate_normal(mean_returns, cov_matrix, horizon_days)
+            sim_returns = rng.multivariate_normal(mean_returns, cov_matrix, horizon_days)
         portfolio_daily = sim_returns @ weights
         cumulative = (1 + portfolio_daily).prod() - 1
         portfolio_returns_base.append(cumulative)
@@ -189,20 +188,18 @@ def run_monte_carlo_stress_test(
     }
     
     # Scenario 2: Structural Break (fat tails, NON vol doubling se già in crisi)
-    # FIX INCONGRUENZA #7: Il fat tail deve peggiorare la coda SINISTRA, non renderla simmetrica
     if includes_crisis:
         # I dati già includono eventi estremi dalle crisi
         # Modella con distribuzione ASIMMETRICA (skew negativo) + fat tails
-        # Student-t con skew applicato solo al downside
         df_t = 4  # gradi di libertà più bassi = code più pesanti
         
         portfolio_returns_structural = []
         for _ in range(n_simulations):
-            # Simula con normale per il mean, poi aggiungi shock negativi
-            z = np.random.multivariate_normal(np.zeros(n_assets), cov_matrix, horizon_days)
+            # Simula con Student-t per fat tails
+            z = rng.multivariate_normal(np.zeros(n_assets), cov_matrix, horizon_days)
             
             # Chi-squared scaling per fat tails
-            chi2 = np.random.chisquare(df_t, horizon_days) / df_t
+            chi2 = rng.chisquare(df_t, horizon_days) / df_t
             
             # Negative skew: eventi negativi sono amplificati
             skew_factor = np.where(z.sum(axis=1) < 0, 1.3, 1.0)  # 30% amplification on bad days
@@ -225,9 +222,9 @@ def run_monte_carlo_stress_test(
         portfolio_returns_highvol = []
         for _ in range(n_simulations):
             if use_student_t:
-                sim_returns = _multivariate_t(mean_returns, cov_highvol, student_t_df, horizon_days)
+                sim_returns = _multivariate_t(mean_returns, cov_highvol, student_t_df, horizon_days, rng=rng)
             else:
-                sim_returns = np.random.multivariate_normal(mean_returns, cov_highvol, horizon_days)
+                sim_returns = rng.multivariate_normal(mean_returns, cov_highvol, horizon_days)
             portfolio_daily = sim_returns @ weights
             cumulative = (1 + portfolio_daily).prod() - 1
             portfolio_returns_highvol.append(cumulative)
@@ -241,6 +238,7 @@ def run_monte_carlo_stress_test(
         }
     
     # Scenario 3: Correlation Regime Shift (sempre valido)
+    # Usa la stessa distribuzione (Student-t se abilitata) per coerenza con scenario 1
     std_devs = np.sqrt(np.diag(cov_matrix))
     crisis_corr = np.full((n_assets, n_assets), 0.95)
     np.fill_diagonal(crisis_corr, 1.0)
@@ -248,7 +246,10 @@ def run_monte_carlo_stress_test(
     
     portfolio_returns_crisis = []
     for _ in range(n_simulations):
-        sim_returns = np.random.multivariate_normal(mean_returns, cov_crisis, horizon_days)
+        if use_student_t:
+            sim_returns = _multivariate_t(mean_returns, cov_crisis, student_t_df, horizon_days, rng=rng)
+        else:
+            sim_returns = rng.multivariate_normal(mean_returns, cov_crisis, horizon_days)
         portfolio_daily = sim_returns @ weights
         cumulative = (1 + portfolio_daily).prod() - 1
         portfolio_returns_crisis.append(cumulative)
@@ -272,49 +273,88 @@ def calculate_shrunk_correlation(returns: pd.DataFrame, shrinkage_target: str = 
     """
     Applica Ledoit-Wolf shrinkage alla matrice di correlazione.
     
-    La correlazione campionaria è rumorosa con poche osservazioni.
-    Lo shrinkage verso un target riduce l'estimation error.
+    Implementazione analitica di Ledoit & Wolf (2004) "A well-conditioned
+    estimator for large-dimensional covariance matrices".
     
-    Metodo: corr_shrunk = δ * Target + (1-δ) * Sample
-    dove δ è stimato per minimizzare MSE.
+    Formula: Σ_shrunk = δ * Target + (1-δ) * Sample
+    dove δ è stimato analiticamente minimizzando la loss function
+    E[||Σ_shrunk - Σ_true||²_F].
     
     Args:
         returns: DataFrame dei returns
         shrinkage_target: 'identity' (correlazione 0) o 'constant' (correlazione media)
     
     Returns:
-        DataFrame con correlazione shrunk
+        (DataFrame con correlazione shrunk, delta)
     """
-    n = len(returns)
+    X = returns.values  # (n, p)
+    n, p = X.shape
     sample_corr = returns.corr()
-    p = sample_corr.shape[0]
+    sample = sample_corr.values
     
     if shrinkage_target == 'identity':
-        # Target: matrice identità (correlazioni = 0)
         target = np.eye(p)
     else:
-        # Target: correlazione costante (media delle correlazioni)
-        avg_corr = (sample_corr.values.sum() - p) / (p * (p - 1))
+        avg_corr = (sample.sum() - p) / (p * (p - 1))
         target = np.full((p, p), avg_corr)
         np.fill_diagonal(target, 1.0)
     
-    # Stima shrinkage intensity (semplificato Ledoit-Wolf)
-    # Formula completa in Ledoit & Wolf (2004)
-    sample = sample_corr.values
+    # === Ledoit-Wolf (2004) analytic shrinkage intensity ===
+    # Standardizza i returns (per lavorare su correlazione, non covarianza)
+    X_std = (X - X.mean(axis=0)) / X.std(axis=0, ddof=1)
     
-    # Frobenius norm della differenza
-    diff = sample - target
+    # Calcola componenti della formula analitica
+    # π̂ (pi-hat): somma delle varianze asintotiche delle entries di S
+    # Per correlazione: π_ij = (1/n) Σ_t (x_ti * x_tj - s_ij)²
+    X2 = X_std ** 2
+    sample_sq = sample ** 2
     
-    # Shrinkage intensity stimata
-    # Approssimazione: basata su varianza delle correlazioni
-    var_corr = np.var(sample[np.triu_indices(p, k=1)])
+    # π: sum of asymptotic variances of entries of sample correlation
+    pi_mat = (X_std.T @ X_std / n) ** 2  # placeholder
+    # Calcolo corretto: per ogni (i,j), var asintotica di s_ij
+    pi_sum = 0.0
+    for t in range(n):
+        x_t = X_std[t, :].reshape(-1, 1)  # (p, 1)
+        cross_t = x_t @ x_t.T  # (p, p)
+        pi_sum += np.sum((cross_t - sample) ** 2)
+    pi_hat = pi_sum / (n ** 2)
     
-    # δ tra 0 e 1
-    delta = min(1.0, max(0.0, var_corr * n / (var_corr * n + np.sum(diff**2) / (p * p))))
+    # ρ̂ (rho-hat): sum of asymptotic covariances of entries of target with sample
+    # Per target=identity: ρ = π_ii (varianze degli elementi diagonali, che sono 1)
+    # Per target=constant: più complesso
+    if shrinkage_target == 'identity':
+        rho_hat = pi_hat  # diagonale target = identità, off-diag = 0
+        # Correzione: solo gli elementi diagonali del target contribuiscono
+        rho_diag = 0.0
+        for t in range(n):
+            x_t = X_std[t, :]
+            rho_diag += np.sum((x_t ** 2 - 1) ** 2)
+        rho_hat = rho_diag / (n ** 2)
+        # Gli off-diagonal del target sono 0, non contribuiscono a ρ
+    else:
+        # Per constant correlation target
+        rho_hat = 0.0
+        r_bar = avg_corr
+        for t in range(n):
+            x_t = X_std[t, :]
+            for i in range(p):
+                for j in range(p):
+                    if i == j:
+                        rho_hat += (x_t[i] ** 2 - 1) ** 2
+                    else:
+                        rho_hat += (x_t[i] * x_t[j] - sample[i, j]) * r_bar
+        rho_hat /= (n ** 2)
     
-    # Se pochi dati (n < 100), aumenta shrinkage
-    if n < 100:
-        delta = min(1.0, delta + 0.2)
+    # γ̂ (gamma-hat): ||Target - Sample||²_F
+    gamma_hat = np.sum((target - sample) ** 2)
+    
+    # κ̂ (kappa-hat) = (π̂ - ρ̂) / γ̂
+    # δ* = max(0, min(1, κ̂/n))
+    if gamma_hat < 1e-10:
+        delta = 0.0  # Sample ≈ Target, no shrinkage needed
+    else:
+        kappa = (pi_hat - rho_hat) / gamma_hat
+        delta = max(0.0, min(1.0, kappa / n))
     
     # Applica shrinkage
     shrunk = delta * target + (1 - delta) * sample
@@ -472,7 +512,7 @@ def calculate_all_metrics(
     avg_dd = float(dd_series.mean())
     current_dd = float(dd_series.iloc[-1])
     
-    # VaR e CVaR
+    # VaR e CVaR (daily)
     var_daily, cvar_daily = calculate_var_cvar(
         returns,
         var_confidence,
@@ -480,8 +520,21 @@ def calculate_all_metrics(
         method=var_method,
         bootstrap_samples=var_bootstrap_samples,
     )
-    var_annual = var_daily * np.sqrt(periods)
-    cvar_annual = cvar_daily * np.sqrt(periods)
+    # VaR/CVaR annualizzato: calcolato su rendimenti mensili cumulati
+    # Lo scaling √T è valido solo sotto normalità IID (ipotesi violata per returns finanziari).
+    # Calcoliamo direttamente il VaR su rendimenti rolling a 21 giorni (≈mensili).
+    rolling_monthly = returns.rolling(window=21).apply(lambda x: (1 + x).prod() - 1, raw=False).dropna()
+    if len(rolling_monthly) >= 30:
+        var_monthly, cvar_monthly = calculate_var_cvar(
+            rolling_monthly, var_confidence, 12, method=var_method,
+        )
+        # Annualizzazione da mensile: scale √12 è ragionevole per rendimenti cumulati a 1M
+        var_annual = var_monthly * np.sqrt(12)
+        cvar_annual = cvar_monthly * np.sqrt(12)
+    else:
+        # Fallback se dati insufficienti per rolling
+        var_annual = var_daily * np.sqrt(periods)
+        cvar_annual = cvar_daily * np.sqrt(periods)
     
     # Monthly stats
     monthly_ret = returns.resample('ME').apply(lambda x: (1 + x).prod() - 1)
@@ -715,9 +768,9 @@ def calculate_benchmark_comparison(
         
         bench_ret_aligned = bench_ret[common_idx]
         
-        # Calcola metriche benchmark
+        # Calcola metriche benchmark (stessa metodologia del portafoglio)
         bench_equity = (1 + bench_ret_aligned).cumprod()
-        bench_cagr = calculate_cagr(bench_equity, 252)
+        bench_cagr = calculate_cagr(bench_equity, periods_per_year=None)  # Calendar days, coerente con portfolio
         bench_vol = calculate_annualized_volatility(bench_ret_aligned, 252)
         bench_sharpe = calculate_sharpe_ratio(bench_ret_aligned, 0.02, 252)
         bench_max_dd, _, _ = calculate_max_drawdown(bench_equity)

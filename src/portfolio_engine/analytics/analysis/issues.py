@@ -422,7 +422,7 @@ def analyze_portfolio_issues(
     # === 4. RISK CONTRIBUTION ANOMALA ===
     for t in risk_contrib.index:
         w = risk_contrib.loc[t, 'Weight']
-        rc = risk_contrib.loc[t, 'CCR%']
+        rc = risk_contrib.loc[t, 'RC%']
         if pd.notna(rc) and w > 0.02:
             ratio = rc / w if w > 0 else 0
             is_core = any(kw in t.upper() for kw in CORE_GLOBAL_ETF + CORE_REGIONAL_ETF + EMERGING_ETF)

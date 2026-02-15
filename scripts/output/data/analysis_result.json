@@ -1,33 +1,35 @@
 {
   "verdict": {
     "type": "INTENT_MISALIGNED_STRUCTURE_OK",
-    "message": "\u26a0\ufe0f INTENT WARNING - Struttura OK, beta sotto target",
+    "message": "\u26a0\ufe0f INTENT MISALIGNED - Struttura OK",
     "confidence": 55
   },
   "portfolio": {
-    "risk_intent": "GROWTH",
+    "risk_intent": "AGGRESSIVE",
     "structure_type": "EQUITY_DIVERSIFIED_MIXED",
     "composition": {
-      "VWCE.DE": 0.4,
-      "CNDX.L": 0.3,
-      "IWQU.L": 0.15,
-      "EMIM.L": 0.15
+      "VWCE.DE": 0.25000000000000006,
+      "IWQU.L": 0.25000000000000006,
+      "EIMI.L": 0.20000000000000004,
+      "URA": 0.10000000000000002,
+      "BOTZ": 0.10000000000000002,
+      "QTUM": 0.10000000000000002
     }
   },
   "metrics": {
-    "cagr": 0.12133036142693299,
-    "sharpe": 0.6469078793398152,
-    "sortino": 0.913183762807026,
-    "max_drawdown": -0.3205910698626394,
-    "volatility": 0.1661755173254481,
-    "var_95": 0.2725774268138301,
-    "cvar_95": 0.3933113789484017,
-    "cagr_ci_lower": 0.04043431473776711,
-    "cagr_ci_upper": 0.2184463184818248,
-    "sharpe_ci_lower": 0.21409094130554224,
-    "sharpe_ci_upper": 1.1680586574983798,
-    "profit_factor": 1.1462798351213257,
-    "win_rate_monthly": 0.6290322580645161
+    "cagr": -0.004717220145193379,
+    "sharpe": -0.07912109039694212,
+    "sortino": -0.10885735699923323,
+    "max_drawdown": -0.8365982960953726,
+    "volatility": 0.15559291389954846,
+    "var_95": 0.27319140276194925,
+    "cvar_95": 0.454687438341271,
+    "cagr_ci_lower": -0.06474347806016653,
+    "cagr_ci_upper": 0.04665010069546294,
+    "sharpe_ci_lower": -0.42328655383403757,
+    "sharpe_ci_upper": 0.2279223765987314,
+    "profit_factor": 1.0134120053869877,
+    "win_rate_monthly": 0.271356783919598
   },
   "quality": {
     "is_actionable": true,
@@ -37,19 +39,22 @@
   "recommendations": {
     "prescriptive_actions": [
       {
-        "issue_code": "INTENT_MISMATCH_SOFT",
-        "priority": "MEDIUM",
-        "confidence": 0.85,
-        "description": "Portfolio beta 0.58 below minimum 0.6 for GROWTH",
+        "issue_code": "INTENT_MISMATCH_HARD",
+        "priority": "CRITICAL",
+        "confidence": 0.95,
+        "description": "Portfolio beta 0.57 is incompatible with AGGRESSIVE (requires \u22650.9)",
         "actions": [
-          "OPTION A: Downgrade RISK_INTENT to BALANCED (better fit)",
-          "OPTION B: Increase beta by 0.02 via:",
-          "   - Tilt US large-cap +5-10%",
-          "   - Reduce defensive/low-vol positions",
-          "OPTION C: Accept current structure as 'controlled-growth' portfolio"
+          "OPTION A: Change RISK_INTENT to MODERATE (matches beta 0.57)",
+          "OPTION B: Increase beta by 0.33 via:",
+          "   - Add 15-20% US large-cap growth (QQQ, VGT, XLK)",
+          "   - Remove low-beta positions (bond proxies, min-vol, utilities)",
+          "   - Reduce EM value / small-cap (typically low-beta)",
+          "OPTION C: If intentional defensive tilt, relabel as BALANCED"
         ],
         "blockers": [
-          "Structural fragile verdict"
+          "All structural analysis",
+          "Benchmark comparisons",
+          "Diversification recommendations"
         ],
         "data_quality_impact": "NONE"
       }
@@ -62,7 +67,7 @@
     "prohibited_actions": []
   },
   "metadata": {
-    "timestamp": "2026-02-09T21:38:20.322451",
+    "timestamp": "2026-02-15T18:23:51.872916",
     "portfolio_id": null
   }
 }

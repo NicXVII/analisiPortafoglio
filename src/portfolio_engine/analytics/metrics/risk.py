@@ -58,26 +58,29 @@ def calculate_sortino_ratio(
     """
     Sortino Ratio con Target Downside Deviation CORRETTA.
     
-    TDD = sqrt(mean(min(0, R - T)^2))
-    Sortino = (Mean Return - Rf) / TDD
+    Formula coerente con Sharpe: entrambi usano la stessa scala.
+    Sortino = (excess_daily / TDD_daily) * sqrt(periods)
+    
+    Questo è equivalente a annualizzare entrambi con √252:
+    - Numeratore: excess_daily * √252 (= Sharpe numerator convention)
+    - Denominatore: TDD_daily * √252
     """
     rf_daily = (1 + risk_free_annual) ** (1/periods) - 1
     target_daily = (1 + target_return) ** (1/periods) - 1
     
-    # Calcola downside deviation
+    # Calcola downside deviation (giornaliera)
     downside = np.minimum(returns - target_daily, 0)
     downside_var = (downside ** 2).mean()
-    tdd = np.sqrt(downside_var) * np.sqrt(periods)
+    tdd_daily = np.sqrt(downside_var)
     
-    if tdd == 0:
+    if tdd_daily == 0:
         return 0.0
     
-    # Mantieni coerenza con TDD annualizzata: usa excess return medio giornaliero
-    # e annualizza linearmente (approccio standard per Sortino).
+    # Annualizzazione coerente: stesso scaling √periods per numeratore e denominatore
+    # Sortino = (excess_daily / tdd_daily) * √periods
     excess_daily = returns.mean() - rf_daily
-    annual_excess = excess_daily * periods
     
-    return float(annual_excess / tdd)
+    return float((excess_daily / tdd_daily) * np.sqrt(periods))
 
 
 def calculate_calmar_ratio(cagr: float, max_dd: float) -> float:
@@ -257,12 +260,15 @@ def calculate_var_cvar(
         # VaR parametrico (assumendo normalità) - SOLO per reference
         var_historical = returns.mean() - stats.norm.ppf(confidence) * returns.std()
     elif bootstrap_samples and bootstrap_samples > 0:
-        # Bootstrap VaR/CVaR
+        # Bootstrap VaR/CVaR (vectorized sampling)
+        values = returns.to_numpy()
+        n = len(values)
+        if n == 0:
+            return 0.0, 0.0
         rng = np.random.default_rng()
-        qs = []
-        for _ in range(int(bootstrap_samples)):
-            sample = returns.sample(len(returns), replace=True, random_state=rng.integers(0, 1_000_000))
-            qs.append(sample.quantile(1 - confidence))
+        idx = rng.integers(0, n, size=(int(bootstrap_samples), n))
+        samples = values[idx]
+        qs = np.quantile(samples, 1 - confidence, axis=1)
         var_historical = float(np.mean(qs))
     else:
         # VaR storico (più robusto per fat tails)
@@ -271,14 +277,19 @@ def calculate_var_cvar(
     # CVaR (Expected Shortfall) - media delle perdite oltre il VaR
     tail_returns = returns[returns <= var_historical]
     if bootstrap_samples and bootstrap_samples > 0:
-        # bootstrap ES
-        cvars = []
+        # bootstrap ES (vectorized)
+        values = returns.to_numpy()
+        n = len(values)
+        if n == 0:
+            return 0.0, 0.0
         rng = np.random.default_rng()
-        for _ in range(int(bootstrap_samples)):
-            sample = returns.sample(len(returns), replace=True, random_state=rng.integers(0, 1_000_000))
-            q = sample.quantile(1 - confidence)
-            tail = sample[sample <= q]
-            cvars.append(tail.mean() if len(tail) > 0 else q)
+        idx = rng.integers(0, n, size=(int(bootstrap_samples), n))
+        samples = values[idx]
+        qs = np.quantile(samples, 1 - confidence, axis=1)
+        mask = samples <= qs[:, None]
+        counts = mask.sum(axis=1)
+        tail_sum = np.where(mask, samples, 0.0).sum(axis=1)
+        cvars = np.where(counts > 0, tail_sum / counts, qs)
         cvar = float(np.mean(cvars))
     else:
         cvar = tail_returns.mean() if len(tail_returns) > 0 else var_historical

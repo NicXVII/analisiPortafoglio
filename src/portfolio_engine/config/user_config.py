@@ -167,15 +167,15 @@ BIAS = {
 # =========================
 OPTIMIZATION = {
     "enabled": True,
-    # Maggiore granularità per analisi: 100 punti sulla frontiera
-    "n_frontier_points": 2000,
-    "max_weight": 1,
+    # 150 punti sono sufficienti per una frontiera smooth (era 3000 → ~20x più lento)
+    "n_frontier_points": 150,
+    "max_weight": 0.40,
     "include_risk_parity": True,
     "use_shrinkage": True,
     "show_efficiency_gap": True,
     "monte_carlo": {
         "enabled": True,
-        "n_sims": 50000,
+        "n_sims": 10000,       # 10k sufficienti per VaR/CVaR convergenti (era 50k)
         "horizon_days": 252,
         "seed": 42,
         "block_size": 5,
@@ -196,13 +196,15 @@ OPTIMIZATION = {
 #   AGGRESSIVE         - Beta 1.0-1.3,   benchmark VT,    max DD -45%, vol 18-22%
 #   HIGH_BETA          - Beta 1.3-2.0,   benchmark AVUV,  max DD -55%, vol 22-30%
 #
-# 👉 GROWTH: Massimizzare profitto su 15 anni con beta controllato
-RISK_INTENT = "GROWTH"  # Beta 0.8-1.0, growth focus
+# 👉 AGGRESSIVE: 100% equity growth, quality + EM + tematici (uranio, AI, quantum)
+RISK_INTENT = "AGGRESSIVE"  # Beta 1.0-1.3, 100% equity
 PORTFOLIO = {
-    "VWCE.DE": 0.40,  # All-World Core
-    "CNDX.L": 0.30,   # Nasdaq 100
-    "IWQU.L": 0.15,   # Quality
-    "EMIM.L": 0.15,   # Emerging Markets
+    "VWCE.DE": 0.25,  # All-World Core
+    "IWQU.L":  0.25,  # MSCI World Quality Factor
+    "EIMI.L":  0.20,  # Emerging Markets IMI
+    "URA":     0.10,  # Global X Uranium / Nuclear
+    "BOTZ":    0.10,  # Global X Robotics & AI Infrastructure
+    "QTUM":    0.10,  # Defiance Quantum Computing
 }
 
 
@@ -238,6 +240,16 @@ EXPORT = {
     "export_html_report": True,         # Report HTML completo
 }
 
+# =========================
+# REPORTING OPTIONS (performance)
+# =========================
+REPORTING = {
+    "include_fund_info": True,          # Sector + holdings fetch (yfinance)
+    "include_sector": True,             # Sector allocation
+    "include_holdings": True,           # Top holdings per ETF
+    "include_aggregated_holdings": True # Aggregated holdings report
+}
+
 
 # =========================
 # =========================
@@ -251,6 +263,7 @@ class PortfolioConfig:
     risk_intent: str
     analysis: Dict[str, Any]
     export: Dict[str, Any]
+    reporting: Dict[str, Any]
     run_integration_tests: bool
     portfolio_storage: Dict[str, Any]
     optimization: Dict[str, Any]
@@ -266,6 +279,7 @@ class PortfolioConfig:
             "risk_intent": self.risk_intent,
             **self.analysis,
             "export": self.export.copy(),
+            "reporting": self.reporting.copy(),
             "run_integration_tests": self.run_integration_tests,
             "portfolio_storage": self.portfolio_storage.copy(),
             "optimization": self.optimization.copy(),
@@ -294,6 +308,7 @@ def _build_portfolio_config_from_mapping(mapping: Dict[str, float], risk_intent:
         risk_intent=intent,
         analysis=ANALYSIS.copy(),
         export=EXPORT.copy(),
+        reporting=REPORTING.copy(),
         run_integration_tests=RUN_INTEGRATION_TESTS,
         portfolio_storage=PORTFOLIO_STORAGE.copy(),
         optimization=OPTIMIZATION.copy(),

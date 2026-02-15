@@ -8,6 +8,7 @@ Used only for reporting (non-core analytics).
 from __future__ import annotations
 
 from typing import Dict, List, Optional, Any
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import yfinance as yf
 
@@ -123,8 +124,19 @@ def get_portfolio_sector_allocation(
     portfolio_sector: Dict[str, float] = {}
     missing: List[str] = []
 
+    sector_map: Dict[str, Optional[Dict[str, float]]] = {}
+    max_workers = min(8, max(1, len(tickers)))
+    with ThreadPoolExecutor(max_workers=max_workers) as ex:
+        futures = {ex.submit(get_sector_weightings, t): t for t in tickers}
+        for fut in as_completed(futures):
+            t = futures[fut]
+            try:
+                sector_map[t] = fut.result()
+            except Exception:
+                sector_map[t] = None
+
     for ticker, w in zip(tickers, weights):
-        sectors = get_sector_weightings(ticker)
+        sectors = sector_map.get(ticker)
         if not sectors:
             missing.append(ticker)
             continue
@@ -165,11 +177,18 @@ def get_top_holdings_by_ticker(
     by_ticker: Dict[str, List[Dict[str, Any]]] = {}
     missing: List[str] = []
 
-    for ticker in tickers:
-        holdings = get_top_holdings(ticker, top_n=top_n)
-        if not holdings:
-            missing.append(ticker)
-            continue
-        by_ticker[ticker] = holdings
+    max_workers = min(8, max(1, len(tickers)))
+    with ThreadPoolExecutor(max_workers=max_workers) as ex:
+        futures = {ex.submit(get_top_holdings, t, top_n=top_n): t for t in tickers}
+        for fut in as_completed(futures):
+            ticker = futures[fut]
+            try:
+                holdings = fut.result()
+            except Exception:
+                holdings = None
+            if not holdings:
+                missing.append(ticker)
+                continue
+            by_ticker[ticker] = holdings
 
     return {"by_ticker": by_ticker, "missing": missing}

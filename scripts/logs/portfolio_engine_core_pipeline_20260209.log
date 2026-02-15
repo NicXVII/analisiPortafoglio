@@ -93,3 +93,36 @@
 2026-02-09 21:53:51 | [33mWARNING[0m | portfolio_engine.core.pipeline |   4 high-correlation pairs detected (RAW)
 2026-02-09 21:53:51 | [32mINFO[0m | portfolio_engine.core.pipeline |   Interpretation: CRITICAL: >90% shrinkage means RAW correlations are unreliable. REG matrix is mostly identity-based....
 2026-02-09 21:53:51 | [32mINFO[0m | portfolio_engine.core.pipeline | Completed _analyze_correlations in 0.00s
+2026-02-09 21:54:33 | DEBUG    | portfolio_engine.core.pipeline | Prescriptive actions collected: 1
+2026-02-09 21:56:48 | DEBUG    | portfolio_engine.core.pipeline | Starting _load_and_validate_data
+2026-02-09 21:56:48 | [32mINFO[0m | portfolio_engine.core.pipeline | RISK INTENT: GROWTH
+2026-02-09 21:56:48 | [32mINFO[0m | portfolio_engine.core.pipeline |   Portafoglio orientato alla crescita, accetta volatilità di mercato
+2026-02-09 21:56:48 | [32mINFO[0m | portfolio_engine.core.pipeline |   Beta atteso: 0.8 - 1.0
+2026-02-09 21:56:48 | [32mINFO[0m | portfolio_engine.core.pipeline |   Benchmark naturale: VT
+2026-02-09 21:56:48 | [32mINFO[0m | portfolio_engine.core.pipeline |   Max DD atteso: -35%
+2026-02-09 21:56:48 | [32mINFO[0m | portfolio_engine.core.pipeline | Downloading data for 4 tickers...
+2026-02-09 21:56:53 | [32mINFO[0m | portfolio_engine.core.pipeline | Downloading benchmark data (VT, SPY, BND)...
+2026-02-09 21:56:56 | [32mINFO[0m | portfolio_engine.core.pipeline | DATA INTEGRITY (STAGGERED_ENTRY):
+2026-02-09 21:56:56 | [32mINFO[0m | portfolio_engine.core.pipeline |   Ogni asset entra quando nasce, pesi rinormalizzati. Preserva storia completa.
+2026-02-09 21:56:56 | [32mINFO[0m | portfolio_engine.core.pipeline |   Earliest data: 2010-09-15
+2026-02-09 21:56:56 | [32mINFO[0m | portfolio_engine.core.pipeline |   Latest inception: 2019-07-29 (common start)
+2026-02-09 21:56:56 | [33mWARNING[0m | portfolio_engine.core.pipeline |   ℹ️ STAGGERED_ENTRY: 3 ticker con storia parziale. Pesi rinormalizzati dinamicamente prima delle loro inception dates.
+2026-02-09 21:56:56 | [33mWARNING[0m | portfolio_engine.core.pipeline |      • EMIM.L: 3.7 anni mancanti
+2026-02-09 21:56:56 | [33mWARNING[0m | portfolio_engine.core.pipeline |      • IWQU.L: 4.1 anni mancanti
+2026-02-09 21:56:56 | [33mWARNING[0m | portfolio_engine.core.pipeline |      • VWCE.DE: 8.9 anni mancanti
+2026-02-09 21:56:56 | [33mWARNING[0m | portfolio_engine.core.pipeline |   ℹ️ STAGGERED_ENTRY: 4309 NaN = asset non ancora esistenti. Gestiti con dynamic weight renormalization nella simulazione.
+2026-02-09 21:56:56 | [32mINFO[0m | portfolio_engine.core.pipeline | Data range: 2010-09-15 to 2026-02-09
+2026-02-09 21:56:56 | [32mINFO[0m | portfolio_engine.core.pipeline | Trading days: 3918
+2026-02-09 21:56:56 | [33mWARNING[0m | portfolio_engine.core.pipeline | Survivorship bias: confidenza LOW (45%). Red flags: 4. ATTENZIONE: dati potenzialmente distorti da survivorship bias. Ridurre peso ETF tematici/leveraged, usare periodo più breve, interpretare le metriche con cautela.
+2026-02-09 21:56:56 | [32mINFO[0m | portfolio_engine.core.pipeline | Completed _load_and_validate_data in 8.04s
+2026-02-09 21:56:56 | DEBUG    | portfolio_engine.core.pipeline | Starting _calculate_portfolio_metrics
+2026-02-09 21:57:09 | [32mINFO[0m | portfolio_engine.core.pipeline | Completed _calculate_portfolio_metrics in 12.91s
+2026-02-09 21:57:09 | DEBUG    | portfolio_engine.core.pipeline | Starting _analyze_correlations
+2026-02-09 21:57:09 | [32mINFO[0m | portfolio_engine.core.pipeline | DUAL-CORRELATION FRAMEWORK (v4.3):
+2026-02-09 21:57:09 | [32mINFO[0m | portfolio_engine.core.pipeline |   Ledoit-Wolf shrinkage intensity: 98.2%
+2026-02-09 21:57:09 | [32mINFO[0m | portfolio_engine.core.pipeline |   Avg correlation RAW: 0.74 | REG: 0.01
+2026-02-09 21:57:09 | [32mINFO[0m | portfolio_engine.core.pipeline |   Framework rule: RAW for diagnosis, REG for calculations
+2026-02-09 21:57:09 | [33mWARNING[0m | portfolio_engine.core.pipeline |   4 high-correlation pairs detected (RAW)
+2026-02-09 21:57:09 | [32mINFO[0m | portfolio_engine.core.pipeline |   Interpretation: CRITICAL: >90% shrinkage means RAW correlations are unreliable. REG matrix is mostly identity-based....
+2026-02-09 21:57:09 | [32mINFO[0m | portfolio_engine.core.pipeline | Completed _analyze_correlations in 0.00s
+2026-02-09 22:01:25 | DEBUG    | portfolio_engine.core.pipeline | Prescriptive actions collected: 1

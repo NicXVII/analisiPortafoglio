@@ -39,7 +39,7 @@ def calculate_risk_contribution(
             "Weight": weights,
             "MCR": zeros,
             "CCR": zeros,
-            "CCR%": zeros
+            "RC%": zeros
         }, index=tickers)
     
     # Marginal Contribution to Risk
@@ -48,14 +48,14 @@ def calculate_risk_contribution(
     # Component Contribution to Risk (pesi * MCR)
     ccr = weights * mcr
     
-    # Percentuale di contribuzione (somma a 1)
-    ccr_pct = ccr / port_vol
+    # Risk Contribution percentuale (somma a 1.0 = 100% del rischio)
+    rc_pct = ccr / port_vol
     
     return pd.DataFrame({
         "Weight": weights,
         "MCR": mcr,
         "CCR": ccr,
-        "CCR%": ccr_pct
+        "RC%": rc_pct
     }, index=tickers)
 
 
@@ -132,15 +132,15 @@ def calculate_conditional_risk_contribution(
             "Weight": weights,
             "MCR": mcr,
             "CCR": ccr,
-            "CCR%": ccr_pct
+            "RC%": ccr_pct
         }, index=tickers)
     
-    # Confronto: quanto cambia la CCR% in crisi vs normale
+    # Confronto: quanto cambia la RC% in crisi vs normale
     comparison = pd.DataFrame({
-        "CCR%_normal": ccr_normal["CCR%"],
-        "CCR%_crisis": ccr_crisis["CCR%"],
-        "Delta": ccr_crisis["CCR%"] - ccr_normal["CCR%"],
-        "Multiplier": ccr_crisis["CCR%"] / ccr_normal["CCR%"].replace(0, np.nan)
+        "RC%_normal": ccr_normal["RC%"],
+        "RC%_crisis": ccr_crisis["RC%"],
+        "Delta": ccr_crisis["RC%"] - ccr_normal["RC%"],
+        "Multiplier": ccr_crisis["RC%"] / ccr_normal["RC%"].replace(0, np.nan)
     }, index=tickers)
     
     return {

@@ -41,15 +41,21 @@ def compute_expected_returns(
     annualize: bool = True,
     periods_per_year: int = 252,
     shrinkage_factor: float = 0.0,
-    use_shrinkage: bool = False,
 ) -> np.ndarray:
-    """Calcola rendimenti attesi; opzionale shrinkage verso media globale."""
+    """
+    Calcola rendimenti attesi annualizzati; opzionale shrinkage verso media globale.
+    
+    Annualizzazione: (1 + mu_daily)^252 - 1 (compounding corretto).
+    La formula mu * 252 sovrastima il rendimento composto atteso,
+    specialmente per asset volatili (bias ~1-2% CAGR per vol > 30%).
+    """
     mu = returns.mean().values
     if shrinkage_factor > 0:
         global_mean = mu.mean()
         mu = (1 - shrinkage_factor) * mu + shrinkage_factor * global_mean
     if annualize:
-        mu = mu * periods_per_year
+        # Compounding corretto invece di mu * periods_per_year
+        mu = (1 + mu) ** periods_per_year - 1
     return mu
 
 

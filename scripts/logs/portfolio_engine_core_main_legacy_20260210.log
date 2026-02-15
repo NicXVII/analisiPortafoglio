@@ -1,0 +1,36 @@
+2026-02-10 09:56:27 | [32mINFO[0m | portfolio_engine.core.main_legacy | Starting portfolio analysis
+2026-02-10 09:56:27 | [32mINFO[0m | portfolio_engine.core.main_legacy | Portfolio storage: saved (hash=31420f54099ad3271439c14307cbb6decfcea0a0604c8ae77655cf36a8d0325e)
+2026-02-10 10:24:02 | [32mINFO[0m | portfolio_engine.core.main_legacy | Starting portfolio analysis
+2026-02-10 10:24:02 | [32mINFO[0m | portfolio_engine.core.main_legacy | Portfolio storage: duplicate skipped (hash=31420f54099ad3271439c14307cbb6decfcea0a0604c8ae77655cf36a8d0325e)
+2026-02-10 10:27:56 | [33mWARNING[0m | portfolio_engine.core.main_legacy | CRISIS DETECTION:
+2026-02-10 10:27:56 | [33mWARNING[0m | portfolio_engine.core.main_legacy |   I dati includono 6 periodi di crisi:
+2026-02-10 10:27:56 | [33mWARNING[0m | portfolio_engine.core.main_legacy |   • GFC (known_dates)
+2026-02-10 10:27:56 | [33mWARNING[0m | portfolio_engine.core.main_legacy |   • Euro Crisis (known_dates)
+2026-02-10 10:27:56 | [33mWARNING[0m | portfolio_engine.core.main_legacy |   • China Deval / Oil Crash (known_dates)
+2026-02-10 10:27:56 | [33mWARNING[0m | portfolio_engine.core.main_legacy |   Max Drawdown osservato: -33.4%
+2026-02-10 10:27:56 | [32mINFO[0m | portfolio_engine.core.main_legacy |   → Monte Carlo userà scenari strutturali, non vol doubling
+2026-02-10 10:27:56 | [32mINFO[0m | portfolio_engine.core.main_legacy | COSTI TRANSAZIONE E FISCALI:
+2026-02-10 10:27:56 | [32mINFO[0m | portfolio_engine.core.main_legacy |   Rebalancing costs:     0.31%/anno
+2026-02-10 10:27:56 | [32mINFO[0m | portfolio_engine.core.main_legacy |   Tax drag (dividendi):  0.29%/anno
+2026-02-10 10:27:56 | [32mINFO[0m | portfolio_engine.core.main_legacy |   ─────────────────────────
+2026-02-10 10:27:56 | [32mINFO[0m | portfolio_engine.core.main_legacy |   TOTALE:                0.60%/anno
+2026-02-10 10:27:56 | [32mINFO[0m | portfolio_engine.core.main_legacy |   CAGR Gross → Net:      8.20% → 7.59%
+2026-02-10 10:27:56 | [33mWARNING[0m | portfolio_engine.core.main_legacy | 🔬 WALK-FORWARD VALIDATION:
+2026-02-10 10:27:56 | [33mWARNING[0m | portfolio_engine.core.main_legacy |    Stability Score: 50/100
+2026-02-10 10:27:56 | [33mWARNING[0m | portfolio_engine.core.main_legacy |    Could not create valid train/test splits
+2026-02-10 10:27:56 | [32mINFO[0m | portfolio_engine.core.main_legacy | =====================================================================
+2026-02-10 10:27:56 | [32mINFO[0m | portfolio_engine.core.main_legacy |                  RISK INTENT ANALYSIS v3.0
+2026-02-10 10:27:56 | [32mINFO[0m | portfolio_engine.core.main_legacy | =====================================================================
+2026-02-10 10:27:56 | [32mINFO[0m | portfolio_engine.core.main_legacy | =====================================================================
+2026-02-10 10:27:56 | [32mINFO[0m | portfolio_engine.core.main_legacy |                  GATE SYSTEM v4.1
+2026-02-10 10:27:56 | [32mINFO[0m | portfolio_engine.core.main_legacy | =====================================================================
+2026-02-10 10:27:56 | [32mINFO[0m | portfolio_engine.core.main_legacy | SOFT CLASSIFICATION (v4.3):
+2026-02-10 10:27:56 | [32mINFO[0m | portfolio_engine.core.main_legacy |   Core Score:     40/100
+2026-02-10 10:27:56 | [32mINFO[0m | portfolio_engine.core.main_legacy |   Tactical Score: 10/100
+2026-02-10 10:27:56 | [32mINFO[0m | portfolio_engine.core.main_legacy |   Conviction:     60/100
+2026-02-10 10:27:56 | [32mINFO[0m | portfolio_engine.core.main_legacy |   Primary Type:   EQUITY_MULTI_BLOCK (confidence: 60%)
+2026-02-10 10:27:56 | [32mINFO[0m | portfolio_engine.core.main_legacy |   Alternatives:   EQUITY_MULTI_BLOCK(40%), STRUCTURED_MULTI_ASSET(20%)
+2026-02-10 10:27:56 | [32mINFO[0m | portfolio_engine.core.main_legacy |   Core Score: 40/100 | Tactical Score: 10/100
+2026-02-10 10:27:58 | [32mINFO[0m | portfolio_engine.core.main_legacy | ML structured export saved: output/data/ml_structured_export_20260210_102758.json
+2026-02-10 10:27:58 | [32mINFO[0m | portfolio_engine.core.main_legacy | Structured output saved: output/data/analysis_result.json
+2026-02-10 10:27:58 | [32mINFO[0m | portfolio_engine.core.main_legacy | Report PDF generato: /home/nic/Desktop/Developer/GitHub/analisiPortafogli/output/portfolio_analysis.pdf

@@ -33,6 +33,7 @@ def generate_efficient_frontier(
     use_shrinkage: bool = True,
     risk_free_rate: float = 0.02,
     include_risk_parity: bool = True,
+    warm_start: bool = True,
 ) -> EfficientFrontier:
     """Genera frontiera efficiente completa con portafogli chiave."""
     _validate_inputs(returns)
@@ -40,10 +41,10 @@ def generate_efficient_frontier(
     cov = compute_covariance_matrix(returns, use_shrinkage=use_shrinkage)
     n = len(mu)
 
-    # Calcola portafogli speciali
-    mv = min_variance_portfolio(returns, allow_short, max_weight, use_shrinkage)
-    ms = max_sharpe_portfolio(returns, risk_free_rate, allow_short, max_weight, use_shrinkage)
-    rp = risk_parity_portfolio(returns, allow_short, max_weight, use_shrinkage) if include_risk_parity else None
+    # Calcola portafogli speciali — passando mu/cov pre-calcolati per evitare ricalcoli
+    mv = min_variance_portfolio(returns, allow_short, max_weight, use_shrinkage, _precomputed=(mu, cov))
+    ms = max_sharpe_portfolio(returns, risk_free_rate, allow_short, max_weight, use_shrinkage, _precomputed=(mu, cov))
+    rp = risk_parity_portfolio(returns, allow_short, max_weight, use_shrinkage, _precomputed=(mu, cov)) if include_risk_parity else None
 
     mu_min, mu_max = mu.min(), mu.max()
     if mu_max <= mu_min:
@@ -54,7 +55,7 @@ def generate_efficient_frontier(
 
     lb = -max_weight if allow_short else 0.0
     bounds = [(lb, max_weight) for _ in range(n)]
-    x0 = np.ones(n) / n
+    x0 = mv.weights if warm_start and mv.success else np.ones(n) / n
     points: List[OptimizationResult] = []
 
     for target in targets:
@@ -76,6 +77,8 @@ def generate_efficient_frontier(
             ret, vol, sharpe = portfolio_statistics(res.x, mu, cov, risk_free_rate)
         else:
             ret, vol, sharpe = 0.0, 0.0, 0.0
+        if warm_start and res.success:
+            x0 = res.x
         points.append(
             OptimizationResult(
                 res.x,
@@ -100,7 +103,7 @@ def analyze_current_vs_optimal(
     use_shrinkage: bool = True,
 ) -> Dict[str, Any]:
     """Confronta portafoglio attuale con portafogli ottimali."""
-    mu = compute_expected_returns(returns, use_shrinkage=use_shrinkage)
+    mu = compute_expected_returns(returns)
     cov = compute_covariance_matrix(returns, use_shrinkage=use_shrinkage)
 
     curr_ret, curr_vol, curr_sharpe = portfolio_statistics(current_weights, mu, cov, risk_free_rate)

@@ -81,40 +81,58 @@ def emit_outputs(
 
     # Sector allocation + holdings (text)
     try:
-        sector_report = get_portfolio_sector_allocation(
-            tickers=tickers, weights=weights.tolist(), min_slice_pct=3.0
-        )
-        holdings_report = get_top_holdings_by_ticker(tickers=tickers, top_n=10)
-        print_sector_and_holdings_report(sector_report, holdings_report, top_n=10)
-        print_aggregated_holdings_report(holdings_report, tickers, weights.tolist(), top_n=10)
+        reporting_cfg = config.get("reporting", {}) if isinstance(config, dict) else {}
+        include_fund_info = reporting_cfg.get("include_fund_info", True)
+        include_sector = reporting_cfg.get("include_sector", True)
+        include_holdings = reporting_cfg.get("include_holdings", True)
+        include_agg = reporting_cfg.get("include_aggregated_holdings", True)
 
-        os.makedirs("output/data", exist_ok=True)
-        with open("output/data/sector_holdings_report.json", "w") as f:
-            json.dump({"sectors": sector_report, "holdings": holdings_report}, f, separators=(",", ":"))
-        # aggregated holdings
-        try:
-            agg = []
-            by_ticker = holdings_report.get("by_ticker", {}) if holdings_report else {}
-            agg_map = {}
-            for t, w in zip(tickers, weights.tolist()):
-                for h in by_ticker.get(t, []):
-                    sym = h.get("symbol") or h.get("Symbol") or h.get("name") or "UNKNOWN"
-                    name = h.get("name") or h.get("Name") or sym
-                    pct = h.get("weight_pct") or h.get("weight") or h.get("holding_percent") or h.get("percent") or h.get("Holding Percent")
-                    if pct is None:
-                        pct = 0.0
-                    try:
-                        pct = float(pct)
-                    except Exception:
-                        pct = 0.0
-                    pct = pct / 100 if pct > 1 else pct
-                    agg_map.setdefault(sym, {"symbol": sym, "name": name, "weight": 0.0})
-                    agg_map[sym]["weight"] += w * pct
-            agg = sorted(agg_map.values(), key=lambda x: x["weight"], reverse=True)[:10]
-            with open("output/data/aggregated_holdings.json", "w") as f:
-                json.dump(agg, f, separators=(",", ":"))
-        except Exception as exc:
-            logger.warning(f"Aggregated holdings export skipped: {exc}")
+        if include_fund_info and (include_sector or include_holdings):
+            sector_report = (
+                get_portfolio_sector_allocation(
+                    tickers=tickers, weights=weights.tolist(), min_slice_pct=3.0
+                )
+                if include_sector
+                else {}
+            )
+            holdings_report = (
+                get_top_holdings_by_ticker(tickers=tickers, top_n=10)
+                if include_holdings
+                else {}
+            )
+            print_sector_and_holdings_report(sector_report, holdings_report, top_n=10)
+
+            if include_agg and holdings_report:
+                print_aggregated_holdings_report(holdings_report, tickers, weights.tolist(), top_n=10)
+
+            os.makedirs("output/data", exist_ok=True)
+            with open("output/data/sector_holdings_report.json", "w") as f:
+                json.dump({"sectors": sector_report, "holdings": holdings_report}, f, separators=(",", ":"))
+            # aggregated holdings
+            if include_agg and holdings_report:
+                try:
+                    agg = []
+                    by_ticker = holdings_report.get("by_ticker", {}) if holdings_report else {}
+                    agg_map = {}
+                    for t, w in zip(tickers, weights.tolist()):
+                        for h in by_ticker.get(t, []):
+                            sym = h.get("symbol") or h.get("Symbol") or h.get("name") or "UNKNOWN"
+                            name = h.get("name") or h.get("Name") or sym
+                            pct = h.get("weight_pct") or h.get("weight") or h.get("holding_percent") or h.get("percent") or h.get("Holding Percent")
+                            if pct is None:
+                                pct = 0.0
+                            try:
+                                pct = float(pct)
+                            except Exception:
+                                pct = 0.0
+                            pct = pct / 100 if pct > 1 else pct
+                            agg_map.setdefault(sym, {"symbol": sym, "name": name, "weight": 0.0})
+                            agg_map[sym]["weight"] += w * pct
+                    agg = sorted(agg_map.values(), key=lambda x: x["weight"], reverse=True)[:10]
+                    with open("output/data/aggregated_holdings.json", "w") as f:
+                        json.dump(agg, f, separators=(",", ":"))
+                except Exception as exc:
+                    logger.warning(f"Aggregated holdings export skipped: {exc}")
     except Exception as exc:
         logger.warning(f"Sector/Holdings report skipped: {exc}")
 

@@ -91,6 +91,7 @@ def build_runtime_config(raw: Dict[str, Any], base: Optional[Dict[str, Any]] = N
         "run_integration_tests",
         "portfolio_storage",
         "show_plots",
+        "reporting",
     ]:
         if key in raw:
             config[key] = raw[key]

@@ -930,7 +930,7 @@ def classify_ccr_leverage(
     results = []
     
     weights = ccr_data['Weight'].values if 'Weight' in ccr_data.columns else None
-    ccr_pct = ccr_data['CCR%'].values if 'CCR%' in ccr_data.columns else None
+    ccr_pct = ccr_data['RC%'].values if 'RC%' in ccr_data.columns else None
     
     if weights is None or ccr_pct is None:
         return []

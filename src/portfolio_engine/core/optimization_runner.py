@@ -143,15 +143,50 @@ def _run_mc_on_key_portfolios(
         return path
 
     def mc_stats(w: np.ndarray) -> Dict[str, float]:
-        samples = []
-        for _ in range(n_sims):
-            path = _sample_path()
-            port_path = (path @ w).astype(float)
-            cum = np.prod(1 + port_path) - 1
-            samples.append(cum)
-        arr = np.array(samples)
+        w = np.array(w, dtype=float)
+        w = w / w.sum()
+
+        # Vectorized path sampling when block bootstrap is not used
+        if not block_size or block_size <= 1:
+            ret_vals = returns.values
+            if len(ret_vals) == 0:
+                return {"mean": 0.0, "median": 0.0, "var_95": 0.0, "cvar_95": 0.0}
+
+            batch_size = int(min(2000, n_sims))
+            samples = []
+            for start in range(0, int(n_sims), batch_size):
+                size = min(batch_size, int(n_sims) - start)
+                idx = rng.integers(0, len(ret_vals), size=(size, horizon_days))
+                paths = ret_vals[idx]  # (size, horizon, n_assets)
+                port = np.tensordot(paths, w, axes=([2], [0]))  # (size, horizon)
+                equity = np.cumprod(1 + port, axis=1)
+                cum = equity[:, -1] - 1
+                samples.append(cum)
+            arr = np.concatenate(samples) if samples else np.array([])
+        else:
+            # Vectorized block bootstrap: sample all blocks at once
+            ret_vals = returns.values
+            n_blocks = int(np.ceil(horizon_days / block_size))
+            max_start = max(1, len(ret_vals) - block_size)
+            # (n_sims, n_blocks) random start indices
+            starts = rng.integers(0, max_start, size=(int(n_sims), n_blocks))
+            # Build index array: for each sim, concatenate block indices
+            block_offsets = np.arange(block_size)  # (block_size,)
+            # (n_sims, n_blocks, block_size)
+            all_idx = starts[:, :, np.newaxis] + block_offsets[np.newaxis, np.newaxis, :]
+            all_idx = all_idx.reshape(int(n_sims), -1)[:, :horizon_days]  # trim to horizon
+            all_idx = np.clip(all_idx, 0, len(ret_vals) - 1)
+            paths = ret_vals[all_idx]  # (n_sims, horizon_days, n_assets)
+            port = np.tensordot(paths, w, axes=([2], [0]))  # (n_sims, horizon_days)
+            equity = np.cumprod(1 + port, axis=1)
+            arr = equity[:, -1] - 1
+
+        if arr.size == 0:
+            return {"mean": 0.0, "median": 0.0, "var_95": 0.0, "cvar_95": 0.0}
+
         q05 = float(np.quantile(arr, 0.05))
-        cvar = float(arr[arr <= q05].mean())
+        tail = arr[arr <= q05]
+        cvar = float(tail.mean()) if tail.size else q05
         # Convenzione: VaR/CVaR come perdita positiva
         var_loss = abs(q05)
         cvar_loss = abs(cvar)

@@ -97,8 +97,8 @@ def export_ml_structured(
                 "weight": float(row['Weight']),
                 "mcr": float(row['MCR']),
                 "ccr": float(row['CCR']),
-                "ccr_pct": float(row['CCR%']),
-                "risk_leverage": float(row['CCR%'] / row['Weight']) if row['Weight'] > 0 else 1.0
+                "ccr_pct": float(row['RC%']),
+                "risk_leverage": float(row['RC%'] / row['Weight']) if row['Weight'] > 0 else 1.0
             }
             for ticker, row in risk_contrib.iterrows()
         },

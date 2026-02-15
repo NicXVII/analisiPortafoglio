@@ -148,13 +148,14 @@ def calculate_sharpe_confidence_interval(
     se_analytical = np.sqrt((1 + 0.5 * sharpe**2) / n_years) if n_years > 0 else 0
     
     # Bootstrap per robustezza (block bootstrap per preservare autocorrelazione)
+    rng = np.random.default_rng(42)  # Seed fisso per riproducibilità
     bootstrap_sharpes = []
     block_size = max(1, min(20, len(returns) // 10))
     for _ in range(n_bootstrap):
         n_blocks = len(returns) // block_size + 1
         blocks = []
         for _ in range(n_blocks):
-            start = np.random.randint(0, len(returns) - block_size + 1)
+            start = rng.integers(0, len(returns) - block_size + 1)
             blocks.append(returns.iloc[start:start + block_size].values)
         sample = pd.Series(np.concatenate(blocks)[:len(returns)])
         excess_sample = sample - rf_daily
@@ -202,6 +203,7 @@ def calculate_cagr_confidence_interval(
     returns = equity.pct_change().dropna()
     
     # Block bootstrap (block size = ~20 giorni per catturare autocorrelazione)
+    rng = np.random.default_rng(42)  # Seed fisso per riproducibilità
     block_size = max(1, min(20, len(returns) // 10))
     bootstrap_cagrs = []
     
@@ -210,7 +212,7 @@ def calculate_cagr_confidence_interval(
         n_blocks = len(returns) // block_size + 1
         blocks = []
         for _ in range(n_blocks):
-            start = np.random.randint(0, len(returns) - block_size + 1)
+            start = rng.integers(0, len(returns) - block_size + 1)
             blocks.append(returns.iloc[start:start+block_size].values)
         
         sample_returns = np.concatenate(blocks)[:len(returns)]
@@ -255,13 +257,14 @@ def calculate_max_dd_confidence_interval(
     returns = equity.pct_change().dropna()
     bootstrap_dds = []
     
+    rng = np.random.default_rng(42)  # Seed fisso per riproducibilità
     block_size = max(1, min(20, len(returns) // 10))
     
     for _ in range(n_bootstrap):
         n_blocks = len(returns) // block_size + 1
         blocks = []
         for _ in range(n_blocks):
-            start = np.random.randint(0, len(returns) - block_size + 1)
+            start = rng.integers(0, len(returns) - block_size + 1)
             blocks.append(returns.iloc[start:start+block_size].values)
         
         sample_returns = np.concatenate(blocks)[:len(returns)]

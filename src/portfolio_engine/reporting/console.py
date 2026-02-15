@@ -78,12 +78,12 @@ def print_retail_report(
     print("-" * 70)
     
     # Top 3 risk contributors
-    top3_risk = risk_contrib.nlargest(3, 'CCR%')
+    top3_risk = risk_contrib.nlargest(3, 'RC%')
     print("  Top 3 Risk Contributors:")
     for idx, (ticker, row) in enumerate(top3_risk.iterrows(), 1):
-        risk_leverage = row['CCR%'] / row['Weight'] if row['Weight'] > 0 else 1.0
+        risk_leverage = row['RC%'] / row['Weight'] if row['Weight'] > 0 else 1.0
         leverage_flag = " ⚠️" if risk_leverage > 2.0 else ""
-        print(f"    {idx}. {ticker:<10} Weight: {row['Weight']:>5.1%}, Risk: {row['CCR%']:>5.1%}{leverage_flag}")
+        print(f"    {idx}. {ticker:<10} Weight: {row['Weight']:>5.1%}, Risk: {row['RC%']:>5.1%}{leverage_flag}")
     
     # VaR daily (solo quello utilizzabile)
     print(f"\n  VaR Daily (95%):        {metrics['var_95_daily']:>12.2%}")
@@ -217,10 +217,10 @@ def _print_executive_summary(
     
     # Line 4: What to Improve
     issues = []
-    top_risk = risk_contrib.nlargest(1, 'CCR%')
+    top_risk = risk_contrib.nlargest(1, 'RC%')
     if not top_risk.empty:
         top_ticker = top_risk.index[0]
-        top_ccr = top_risk.iloc[0]['CCR%']
+        top_ccr = top_risk.iloc[0]['RC%']
         top_weight = top_risk.iloc[0]['Weight']
         risk_leverage = top_ccr / top_weight if top_weight > 0 else 1.0
         
@@ -393,13 +393,13 @@ def print_summary(
     print("\n" + "=" * 70)
     print("RISK CONTRIBUTION (Component Contribution to Risk)")
     print("=" * 70)
-    print(f"{'Ticker':<12} {'Weight':>8} {'MCR':>10} {'CCR':>10} {'CCR%':>10}")
+    print(f"{'Ticker':<12} {'Weight':>8} {'MCR':>10} {'CCR':>10} {'RC%':>10}")
     print("-" * 50)
     for ticker in risk_contrib.index:
         row = risk_contrib.loc[ticker]
-        print(f"{ticker:<12} {row['Weight']:>8.2%} {row['MCR']:>10.4f} {row['CCR']:>10.4f} {row['CCR%']:>10.2%}")
+        print(f"{ticker:<12} {row['Weight']:>8.2%} {row['MCR']:>10.4f} {row['CCR']:>10.4f} {row['RC%']:>10.2%}")
     print("-" * 50)
-    print(f"{'TOTAL':<12} {risk_contrib['Weight'].sum():>8.2%} {'':<10} {risk_contrib['CCR'].sum():>10.4f} {risk_contrib['CCR%'].sum():>10.2%}")
+    print(f"{'TOTAL':<12} {risk_contrib['Weight'].sum():>8.2%} {'':<10} {risk_contrib['CCR'].sum():>10.4f} {risk_contrib['RC%'].sum():>10.2%}")
     
     # === CCR CONDIZIONALE (normale vs crisi) ===
     # FIX BUG #2: Block conclusions if crisis_days < minimum
@@ -413,7 +413,7 @@ def print_summary(
         if crisis_days < MIN_CRISIS_DAYS:
             # FIX BUG #2: Gate - sample too small for inference
             print("\n" + "-" * 50)
-            print("📊 CCR% NORMALE vs CRISI (BLOCKED - SAMPLE TOO SMALL)")
+            print("📊 RC% NORMALE vs CRISI (BLOCKED - SAMPLE TOO SMALL)")
             print("-" * 50)
             print(f"   ⛔ Crisis days: {crisis_days} (< {MIN_CRISIS_DAYS} minimum)")
             print(f"   Non è possibile fare inferenza statistica su normale vs crisi.")
@@ -422,7 +422,7 @@ def print_summary(
             print("-" * 50)
         else:
             print("\n" + "-" * 50)
-            print("📊 CCR% NORMALE vs CRISI (come cambia in stress)")
+            print("📊 RC% NORMALE vs CRISI (come cambia in stress)")
             print("-" * 50)
         
         comparison = conditional_ccr.get('comparison')
@@ -431,8 +431,8 @@ def print_summary(
         print("-" * 50)
         for ticker in comparison.index:
             row = comparison.loc[ticker]
-            normal = row['CCR%_normal']
-            crisis = row['CCR%_crisis']
+            normal = row['RC%_normal']
+            crisis = row['RC%_crisis']
             delta = row['Delta']
             
             # Nota interpretativa
